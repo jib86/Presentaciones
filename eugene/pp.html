@@ -1,0 +1,2607 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>From Non-Magnetic to Magnetic in 2D Carbides — J. Ignacio Borge</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, { delimiters: [{ left: '$$', right: '$$', display: true }, { left: '$', right: '$', display: false }], throwOnError: false });"></script>
+
+    <style>
+        :root {
+            --bg-deep: #09090b;
+            --bg-gradient:
+                radial-gradient(circle at 15% 50%, rgba(34, 211, 238, 0.08), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(192, 132, 252, 0.08), transparent 25%);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --c-cyan: #22d3ee;
+            --accent-cyan: #22d3ee;
+            --accent-purple: #a78bfa;
+            --accent-gold: #fde047;
+            --glass-bg: rgba(30, 41, 59, 0.4);
+            --glass-border: rgba(255, 255, 255, 0.08);
+
+            /* Colores Temáticos */
+            --c-stone: #a8a29e;
+            --c-bronze: #f59e0b;
+            --c-iron: #60a5fa;
+            --c-ind: #ef4444;
+            --c-poly: #d946ef;
+            --c-silicon: #10b981;
+            --c-quantum: #a78bfa;
+
+            --c-blue: #38bdf8;
+            --c-purple: #a78bfa;
+            --c-pink: #f472b6;
+            --c-gold: #facc15;
+            --c-danger: #ef4444;
+            --c-green: #4ade80;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-deep);
+            background-image: var(--bg-gradient);
+            font-family: 'Inter', sans-serif;
+            color: var(--text-main);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* ── SLIDE ENGINE ── */
+        #slides-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            transform: scale(0.98);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            box-sizing: border-box;
+            padding: 40px;
+        }
+
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: all;
+            transform: scale(1);
+            z-index: 10;
+        }
+
+        /* ── SLIDE INDICATOR ── */
+        .slide-indicator {
+            position: fixed;
+            bottom: 40px;
+            right: 50px;
+            font-variant-numeric: tabular-nums;
+            color: var(--text-muted);
+            opacity: 0.5;
+            font-size: 0.9rem;
+            z-index: 100;
+            transition: opacity 0.5s;
+        }
+
+        .slide-indicator.hidden {
+            opacity: 0;
+        }
+
+        /* ── UTILITIES ── */
+        .hero-title {
+            font-family: 'Inter', sans-serif;
+            font-weight: 800;
+            font-size: 4.4rem;
+            line-height: 1.05;
+            background: linear-gradient(135deg, #ffffff 30%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .premium-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px 30px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 100px;
+            font-size: 1.35rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--accent-gold);
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .deco-line {
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            margin: 2rem 0;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        /* --- DASHBOARD & TABLE STYLES (for Preliminary Data slide) --- */
+        .dashboard-card {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
+            width: 90%;
+            max-width: 1200px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            max-height: 82vh;
+            margin: 0 auto;
+            backdrop-filter: blur(10px);
+        }
+
+        .table-container {
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        table.t3-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 15px;
+        }
+
+        table.t3-table th {
+            background-color: rgba(15, 23, 42, 0.8);
+            color: #94a3b8;
+            padding: 18px 10px;
+            text-align: center;
+            cursor: pointer;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-transform: none;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+            transition: background 0.3s;
+            vertical-align: middle;
+        }
+
+        table.t3-table th:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: #fff;
+        }
+
+        table.t3-table th:nth-child(1) {
+            width: 8%;
+        }
+
+        table.t3-table th:nth-child(2) {
+            width: 9%;
+        }
+
+        table.t3-table th:nth-child(3) {
+            width: 8%;
+        }
+
+        table.t3-table th:nth-child(4) {
+            width: 8%;
+        }
+
+        table.t3-table th:nth-child(5) {
+            width: 20%;
+        }
+
+        table.t3-table th:nth-child(6) {
+            width: 15%;
+        }
+
+        table.t3-table th:nth-child(7) {
+            width: 12%;
+        }
+
+        table.t3-table th:nth-child(8) {
+            width: 20%;
+        }
+
+        table.t3-table td {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            vertical-align: middle;
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        table.t3-table tr:hover td {
+            background-color: rgba(255, 255, 255, 0.03);
+            color: #fff;
+        }
+
+        .col-element {
+            font-weight: 700;
+            color: #fff !important;
+            font-size: 1.1rem;
+        }
+
+        .col-config {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--c-purple) !important;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            min-width: 80px;
+            justify-content: center;
+            white-space: nowrap;
+        }
+
+        .badge.fm {
+            background: rgba(34, 211, 238, 0.1);
+            color: var(--c-cyan);
+            border: 1px solid rgba(34, 211, 238, 0.3);
+        }
+
+        .badge.afm {
+            background: rgba(251, 191, 36, 0.1);
+            color: var(--c-gold);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+        }
+
+        .badge.nm {
+            background: rgba(148, 163, 184, 0.1);
+            color: #94a3b8;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+        }
+
+        .bar-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: #fff;
+        }
+
+        .bar-bg {
+            flex-grow: 1;
+            height: 6px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            width: 100px;
+            max-width: 120px;
+        }
+
+        .bar-fill {
+            height: 100%;
+            border-radius: 3px;
+        }
+
+        /* ── MODAL OVERLAY ── */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.72);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal-panel {
+            background: rgba(9, 18, 32, 0.97);
+            border: 1px solid rgba(34, 211, 238, 0.3);
+            border-top: 4px solid var(--c-cyan);
+            border-radius: 22px;
+            padding: 38px 44px;
+            max-width: 680px;
+            width: 88%;
+            position: relative;
+            transform: scale(0.88);
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+        }
+
+        .modal-overlay.show .modal-panel {
+            transform: scale(1);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.5rem;
+            cursor: pointer;
+            line-height: 1;
+            transition: color 0.2s;
+        }
+
+        .modal-close:hover {
+            color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="slide-indicator hidden" id="slide-indicator">
+        <span id="current-slide">1</span>
+        <span style="margin:0 5px; opacity:0.3">/</span>
+        <span id="total-slides">0</span>
+    </div>
+
+    <div id="slides-container">
+
+        <!-- ══════════════════════════════════════
+             SLIDE 1: COVER
+             ══════════════════════════════════════ -->
+        <section class="slide active">
+            <div
+                style="width:100%; max-width:1400px; height:90%; display:flex; flex-direction:column; justify-content:space-between; padding:60px 0 40px; box-sizing:border-box; text-align:center;">
+
+                <!-- Badge -->
+                <div style="flex:0 0 auto;">
+                    <div class="premium-badge">
+                        <i class="fa-solid fa-atom"></i> Postdoctoral Research
+                    </div>
+                </div>
+
+                <!-- Title block -->
+                <div style="flex:1; display:flex; flex-direction:column; justify-content:center;">
+                    <h1
+                        style="font-family:'Inter',sans-serif; font-weight:800; font-size:4rem; line-height:1.1; margin:0 0 20px; letter-spacing:-1px;">
+                        <span
+                            style="background:linear-gradient(90deg,#fff,var(--c-cyan)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;">
+                            From Non-Magnetic to Magnetic
+                        </span>
+                        <span style="font-weight:300; font-size:3rem; display:block; margin-top:10px; color:#cbd5e1;">
+                            in&nbsp;<span
+                                style="font-family:'Inter',sans-serif; font-weight:400; color:var(--c-cyan);">2D
+                                Transition Metal Carbides</span>
+                        </span>
+                    </h1>
+
+                    <h2
+                        style="font-family:'Playfair Display',serif; font-style:italic; font-size:1.8rem; font-weight:300; margin:30px auto 0; max-width:900px; line-height:1.5; color:#94a3b8;">
+                        Spin, Topology, and
+                        <strong
+                            style="background:linear-gradient(90deg,var(--c-pink),var(--c-purple)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; font-weight:700;">Many-Body
+                            Physics</strong>
+                        in MXene Solid Solutions
+                    </h2>
+
+                    <div class="deco-line" style="max-width:200px; margin:3rem auto;"></div>
+                </div>
+
+                <!-- Footer meta -->
+                <div
+                    style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:30px; text-align:left; max-width:1400px; width:95%; margin:0 auto; padding-top:30px; border-top:1px solid rgba(255,255,255,0.1);">
+
+                    <!-- Researcher -->
+                    <div style="display:flex; gap:15px; align-items:flex-start;">
+                        <div
+                            style="background:rgba(6,182,212,0.1); padding:10px; border-radius:8px; color:var(--c-cyan);">
+                            <i class="fa-solid fa-user-tie"></i>
+                        </div>
+                        <div>
+                            <h4
+                                style="font-size:0.8rem; text-transform:uppercase; letter-spacing:2px; color:#64748b; margin:0 0 5px;">
+                                Researcher</h4>
+                            <p style="font-size:1.2rem; color:#fff; font-weight:500; margin:0;">J. Ignacio Borge</p>
+                            <p
+                                style="font-size:0.85rem; color:var(--c-cyan); font-weight:300; margin:2px 0 0; font-style:italic;">
+                                Computational Materials Scientist</p>
+                        </div>
+                    </div>
+
+                    <!-- Date -->
+                    <div style="display:flex; gap:15px; align-items:flex-start; justify-self:center;">
+                        <div
+                            style="background:rgba(236,72,153,0.1); padding:10px; border-radius:8px; color:var(--c-pink);">
+                            <i class="fa-regular fa-calendar-check"></i>
+                        </div>
+                        <div>
+                            <h4
+                                style="font-size:0.8rem; text-transform:uppercase; letter-spacing:2px; color:#64748b; margin:0 0 5px;">
+                                Date</h4>
+                            <p style="font-size:1.2rem; color:#fff; font-weight:500; margin:0;">March 04</p>
+                            <p style="font-size:0.9rem; color:var(--text-muted); margin:2px 0 0;">2026</p>
+                        </div>
+                    </div>
+
+                    <!-- Institution -->
+                    <div style="display:flex; gap:15px; align-items:flex-start; justify-self:end;">
+                        <div
+                            style="background:rgba(74,222,128,0.1); padding:10px; border-radius:8px; color:var(--c-green);">
+                            <i class="fa-solid fa-building-columns"></i>
+                        </div>
+                        <div>
+                            <h4
+                                style="font-size:0.8rem; text-transform:uppercase; letter-spacing:2px; color:#64748b; margin:0 0 5px;">
+                                Institution</h4>
+                            <p style="font-size:1.2rem; color:#fff; font-weight:500; margin:0;">University of Costa Rica
+                            </p>
+                            <p style="font-size:0.9rem; color:var(--text-muted); margin:2px 0 0;">School of Chemistry
+                            </p>
+                            <p style="font-size:0.8rem; color:var(--c-cyan); margin:1px 0 0; font-style:italic;">
+                                Computational Materials Theory</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ══════════════════════════════════════
+             SLIDE 1.5: RESEARCH CONTEXT (QUOTE)
+             ══════════════════════════════════════ -->
+        <section class="slide">
+            <div
+                style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; max-width:1100px; margin:0 auto; text-align:center; gap:40px;">
+
+                <!-- Label -->
+                <div style="display:flex; align-items:center; gap:18px;">
+                    <div style="height:1px; width:60px; background:linear-gradient(90deg,transparent,var(--c-cyan));">
+                    </div>
+                    <span
+                        style="font-size:0.75rem; text-transform:uppercase; letter-spacing:4px; color:var(--c-cyan); font-weight:600;">Research
+                        Context</span>
+                    <div style="height:1px; width:60px; background:linear-gradient(90deg,var(--c-cyan),transparent);">
+                    </div>
+                </div>
+
+                <!-- Big quote -->
+                <p
+                    style="font-family:'Inter',sans-serif; font-size:2.55rem; font-weight:300; line-height:1.5; color:#e2e8f0; margin:0; letter-spacing:-0.3px;">
+                    This work explores a
+                    <strong
+                        style="font-weight:700; background:linear-gradient(90deg,var(--c-cyan),#38bdf8); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;">2D
+                        quantum many-body platform</strong>,
+                    investigating the potential emergence of
+                    <strong
+                        style="font-weight:700; background:linear-gradient(90deg,var(--c-purple),var(--c-pink)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;">topological
+                        spin textures</strong>
+                    — such as skyrmions — from
+                    <strong style="font-weight:600; color:#e2e8f0;">non-magnetic constituents</strong>,
+                    bridging
+                    <strong
+                        style="font-weight:700; background:linear-gradient(90deg,var(--c-gold),#fb923c); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;">first-principles
+                        computation</strong>
+                    with quantum materials design.
+                </p>
+
+                <!-- Footer tags -->
+                <div style="display:flex; align-items:center; gap:18px;">
+                    <div
+                        style="height:1px; width:40px; background:linear-gradient(90deg,transparent,rgba(167,139,250,0.5));">
+                    </div>
+                    <span
+                        style="font-size:0.72rem; text-transform:uppercase; letter-spacing:4px; color:var(--text-muted); font-family:'JetBrains Mono',monospace;">MXene
+                        Platform · DFT · Spintronics</span>
+                    <div
+                        style="height:1px; width:40px; background:linear-gradient(90deg,rgba(167,139,250,0.5),transparent);">
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- ══════════════════════════════════════
+             SLIDE 2: WHAT ARE WE WORKING ON?
+             ══════════════════════════════════════ -->
+        <section class="slide">
+            <div
+                style="width:100%; max-width:1300px; margin:0 auto; display:flex; flex-direction:column; gap:24px; height:88vh; justify-content:center;">
+
+                <!-- Title -->
+                <h2
+                    style="font-family:'Inter',sans-serif; font-weight:800; font-size:2.8rem; margin:0; letter-spacing:-1px; text-align:center;
+                            background:linear-gradient(90deg,#fff 40%,var(--c-cyan)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;">
+                    What are we working on?
+                </h2>
+
+                <!-- Bento grid: 3 cols, 2 rows -->
+                <div
+                    style="display:grid; grid-template-columns:1.15fr 1fr 0.85fr; grid-template-rows:auto auto; gap:16px; flex:1; min-height:0;">
+
+                    <!-- A: Approach (top-left, tall — spans 2 rows) -->
+                    <div
+                        style="grid-column:1; grid-row:1/3; background:rgba(34,211,238,0.06); border:1px solid rgba(34,211,238,0.22); border-radius:18px; border-top:4px solid var(--c-cyan); padding:28px; display:flex; flex-direction:column; gap:14px; position:relative; overflow:hidden;">
+                        <div
+                            style="font-family:'JetBrains Mono',monospace; font-size:5rem; font-weight:800; color:rgba(34,211,238,0.06); position:absolute; top:-14px; right:6px; line-height:1;">
+                            01</div>
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <div
+                                style="width:38px; height:38px; border-radius:50%; border:2px solid var(--c-cyan); background:rgba(34,211,238,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                <i class="fa-solid fa-laptop-code" style="color:var(--c-cyan); font-size:0.95rem;"></i>
+                            </div>
+                            <h3 style="font-size:1.2rem; color:#fff; margin:0;">Computational Approach</h3>
+                        </div>
+                        <p style="font-size:1.05rem; color:var(--text-muted); line-height:1.65; margin:0;">
+                            We primarily use <strong style="color:var(--c-cyan);">Density Functional Theory
+                                (DFT)</strong>,
+                            complemented by <strong style="color:var(--c-cyan);">tight-binding models</strong>,
+                            <strong style="color:var(--c-cyan);">Kubo–Greenwood electrical conductivity</strong>,
+                            and our own in-house implementations, to systematically investigate the physical properties
+                            of
+                            <strong style="color:var(--c-cyan);">2D magnetic materials</strong>.
+                        </p>
+                        <!-- spacer above equation -->
+                        <div style="flex:1;"></div>
+                        <!-- Kohn-Sham equation -->
+                        <div
+                            style="background:rgba(34,211,238,0.07); border:1px solid rgba(34,211,238,0.2); border-radius:12px; padding:14px; text-align:center; font-size:0.95rem; color:var(--c-cyan);">
+                            $\left[\hat{T}_s + V_\text{eff}(\mathbf{r})\right]\psi_i(\mathbf{r}) =
+                            \varepsilon_i\,\psi_i(\mathbf{r})$
+                        </div>
+                        <!-- spacer below keeps pills at bottom -->
+                        <div style="flex:1;"></div>
+                        <div style="display:flex; flex-wrap:wrap; gap:7px;">
+                            <span
+                                style="padding:3px 11px; border-radius:50px; font-size:0.78rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; background:rgba(34,211,238,0.12); border:1px solid rgba(34,211,238,0.3); color:var(--c-cyan);">DFT</span>
+                            <span
+                                style="padding:3px 11px; border-radius:50px; font-size:0.78rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; background:rgba(34,211,238,0.07); border:1px solid rgba(34,211,238,0.2); color:var(--text-muted);">DFT+U</span>
+                            <span
+                                style="padding:3px 11px; border-radius:50px; font-size:0.78rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; background:rgba(34,211,238,0.07); border:1px solid rgba(34,211,238,0.2); color:var(--text-muted);">SOC</span>
+                            <span
+                                style="padding:3px 11px; border-radius:50px; font-size:0.78rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; background:rgba(34,211,238,0.07); border:1px solid rgba(34,211,238,0.2); color:var(--text-muted);">Tight-Binding</span>
+                            <span
+                                style="padding:3px 11px; border-radius:50px; font-size:0.78rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; background:rgba(34,211,238,0.07); border:1px solid rgba(34,211,238,0.2); color:var(--text-muted);">Kubo–Greenwood</span>
+                            <span
+                                style="padding:3px 11px; border-radius:50px; font-size:0.78rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; background:rgba(34,211,238,0.07); border:1px solid rgba(34,211,238,0.2); color:var(--text-muted);">Own
+                                Implementations</span>
+                        </div>
+                    </div>
+
+                    <!-- B: Emergent Magnetism (top-centre) -->
+                    <div
+                        style="grid-column:2; grid-row:1; background:rgba(167,139,250,0.06); border:1px solid rgba(167,139,250,0.22); border-radius:18px; border-top:4px solid var(--c-purple); padding:26px; display:flex; flex-direction:column; gap:12px; position:relative; overflow:hidden;">
+                        <div
+                            style="font-family:'JetBrains Mono',monospace; font-size:5rem; font-weight:800; color:rgba(167,139,250,0.06); position:absolute; top:-14px; right:6px; line-height:1;">
+                            02</div>
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <div
+                                style="width:38px; height:38px; border-radius:50%; border:2px solid var(--c-purple); background:rgba(167,139,250,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                <i class="fa-solid fa-magnet" style="color:var(--c-purple); font-size:0.95rem;"></i>
+                            </div>
+                            <h3 style="font-size:1.2rem; color:#fff; margin:0;">Emergent Magnetism</h3>
+                        </div>
+                        <p style="font-size:1.05rem; color:var(--text-muted); line-height:1.65; margin:0; flex:1;">
+                            Magnetism <strong style="color:var(--c-purple);">emerges from non-magnetic parents</strong>:
+                            neither Nb nor Ti is magnetic on its own — yet their combination triggers a stable magnetic
+                            ordering.
+                        </p>
+                        <!-- Nb + Ti → ★ -->
+                        <div
+                            style="display:flex; align-items:center; justify-content:center; gap:10px; padding:10px 0 2px;">
+                            <div style="text-align:center;">
+                                <div
+                                    style="width:42px; height:42px; border-radius:50%; border:1.5px solid rgba(255,255,255,0.25); display:flex; align-items:center; justify-content:center; font-size:1.15rem; font-weight:700; color:#fff; margin:0 auto 3px;">
+                                    Nb</div>
+                                <span
+                                    style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px;">non-mag.</span>
+                            </div>
+                            <span style="color:var(--text-muted); font-size:1.1rem;">+</span>
+                            <div style="text-align:center;">
+                                <div
+                                    style="width:42px; height:42px; border-radius:50%; border:1.5px solid rgba(255,255,255,0.25); display:flex; align-items:center; justify-content:center; font-size:1.15rem; font-weight:700; color:#fff; margin:0 auto 3px;">
+                                    Ti</div>
+                                <span
+                                    style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px;">non-mag.</span>
+                            </div>
+                            <span style="font-size:1.4rem; color:var(--c-purple); margin:0 4px;">→</span>
+                            <div style="text-align:center;">
+                                <div
+                                    style="width:50px; height:50px; border-radius:50%; border:2px solid var(--c-purple); background:rgba(167,139,250,0.15); display:flex; align-items:center; justify-content:center; font-size:0.9rem; font-weight:700; color:var(--c-purple); box-shadow:0 0 22px rgba(167,139,250,0.3); margin:0 auto 3px;">
+                                    <i class="fa-solid fa-star-of-life"></i>
+                                </div>
+                                <span
+                                    style="font-size:0.65rem; color:var(--c-purple); text-transform:uppercase; letter-spacing:1px;">Magnetic!</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- C: Material Platform (bottom-centre) -->
+                    <div
+                        style="grid-column:2; grid-row:2; background:rgba(253,224,71,0.06); border:1px solid rgba(253,224,71,0.22); border-radius:18px; border-top:4px solid var(--c-gold); padding:26px; display:flex; flex-direction:column; gap:12px; position:relative; overflow:hidden;">
+                        <div
+                            style="font-family:'JetBrains Mono',monospace; font-size:5rem; font-weight:800; color:rgba(253,224,71,0.06); position:absolute; top:-14px; right:6px; line-height:1;">
+                            03</div>
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <div
+                                style="width:38px; height:38px; border-radius:50%; border:2px solid var(--c-gold); background:rgba(253,224,71,0.08); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                <i class="fa-solid fa-flask-vial" style="color:var(--c-gold); font-size:0.95rem;"></i>
+                            </div>
+                            <h3 style="font-size:1.2rem; color:#fff; margin:0;">Material Platform</h3>
+                        </div>
+                        <!-- Formula -->
+                        <div
+                            style="background:rgba(253,224,71,0.08); border:1px solid rgba(253,224,71,0.2); border-radius:12px; padding:13px; text-align:center;">
+                            <div
+                                style="font-family:'Inter',sans-serif; font-weight:600; font-size:1.55rem; color:#fff; line-height:1.3;">
+                                (Nb<sub style="color:var(--c-gold);">1−α</sub>Ti<sub
+                                    style="color:var(--c-gold);">α</sub>)<sub>4</sub>C<sub>3</sub>T<sub
+                                    style="color:var(--c-gold);">x</sub>
+                            </div>
+                            <div
+                                style="font-size:0.75rem; color:var(--text-muted); margin-top:6px; font-family:'JetBrains Mono',monospace;">
+                                MXene — M<sub>n+1</sub>X<sub>n</sub>T<sub>x</sub> family</div>
+                            <div
+                                style="font-size:0.7rem; color:rgba(253,224,71,0.6); margin-top:4px; font-family:'JetBrains Mono',monospace;">
+                                α = Ti fraction &nbsp;·&nbsp; T<sub>x</sub> = surface terminations (–F, –O, –OH)
+                            </div>
+                        </div>
+                        <div
+                            style="display:inline-flex; align-items:center; gap:7px; background:rgba(74,222,128,0.1); border:1px solid rgba(74,222,128,0.3); padding:4px 11px; border-radius:50px; align-self:flex-start;">
+                            <i class="fa-solid fa-circle-check" style="color:var(--c-green); font-size:0.8rem;"></i>
+                            <span
+                                style="color:var(--c-green); font-size:0.75rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Experimentally
+                                available</span>
+                        </div>
+                    </div>
+
+                    <!-- D: Spintronics / DMI (right column, spans 2 rows) -->
+                    <div
+                        style="grid-column:3; grid-row:1/3; background:rgba(74,222,128,0.06); border:1px solid rgba(74,222,128,0.22); border-radius:18px; border-top:4px solid var(--c-green); padding:26px; display:flex; flex-direction:column; gap:14px; position:relative; overflow:hidden;">
+                        <div
+                            style="font-family:'JetBrains Mono',monospace; font-size:5rem; font-weight:800; color:rgba(74,222,128,0.06); position:absolute; top:-14px; right:6px; line-height:1;">
+                            04</div>
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <div
+                                style="width:38px; height:38px; border-radius:50%; border:2px solid var(--c-green); background:rgba(74,222,128,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                <i class="fa-solid fa-compass" style="color:var(--c-green); font-size:0.95rem;"></i>
+                            </div>
+                            <h3 style="font-size:1.2rem; color:#fff; margin:0;">Target: Spintronics</h3>
+                        </div>
+                        <p style="font-size:1.05rem; color:var(--text-muted); line-height:1.65; margin:0;">
+                            Exploratory phase focused on mapping relevant magnetic properties, with an eye on <strong
+                                style="color:var(--c-green);">spintronic applications</strong> — in particular the
+                            <strong style="color:var(--c-green);">Dzyaloshinskii–Moriya Interaction (DMI)</strong>.
+                        </p>
+                        <!-- Skyrmion image -->
+                        <div style="display:flex; justify-content:center; flex-shrink:0;">
+                            <img src="3.jpg" alt="Skyrmion"
+                                style="width:150px; height:150px; object-fit:cover; border-radius:50%; border:2px solid rgba(74,222,128,0.35); box-shadow:0 0 20px rgba(74,222,128,0.25);">
+                        </div>
+                        <!-- spacer pushes equation + pills to bottom -->
+                        <div style="flex:0.5;"></div>
+                        <!-- DMI equation -->
+                        <div
+                            style="background:rgba(74,222,128,0.07); border:1px solid rgba(74,222,128,0.2); border-radius:12px; padding:13px; text-align:center; font-size:1rem; color:var(--c-green);">
+                            $\mathcal{H}_\text{DMI} = \sum_{i,j} \mathbf{D}_{ij} \cdot (\mathbf{S}_i \times
+                            \mathbf{S}_j)$
+                        </div>
+                        <div style="display:flex; flex-wrap:wrap; gap:7px; margin-top:auto;">
+                            <span
+                                style="padding:3px 11px; border-radius:50px; font-size:0.78rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; background:rgba(74,222,128,0.12); border:1px solid rgba(74,222,128,0.3); color:var(--c-green);">DMI</span>
+                            <span
+                                style="padding:3px 11px; border-radius:50px; font-size:0.78rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; background:rgba(74,222,128,0.07); border:1px solid rgba(74,222,128,0.2); color:var(--text-muted);">Skyrmions</span>
+                            <span
+                                style="padding:3px 11px; border-radius:50px; font-size:0.78rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; background:rgba(74,222,128,0.07); border:1px solid rgba(74,222,128,0.2); color:var(--text-muted);">MAE</span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- ── PAPER CITATION BAR ── -->
+                <div
+                    style="display:flex; align-items:center; gap:16px; padding:13px 20px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:12px; flex-shrink:0;">
+                    <div
+                        style="width:34px; height:34px; border-radius:8px; background:rgba(253,224,71,0.1); border:1px solid rgba(253,224,71,0.25); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                        <i class="fa-solid fa-file-lines" style="color:var(--c-gold); font-size:0.9rem;"></i>
+                    </div>
+                    <div style="flex:1; min-width:0;">
+                        <p style="margin:0; font-size:0.82rem; color:#fff; line-height:1.4;">
+                            <strong>From Non-Magnetic to Magnetic:</strong> A First-Principles Study of the Emergence of
+                            Magnetism in 2D
+                            (Nb<sub>1–x</sub>Ti<sub>x</sub>)<sub>4</sub>C<sub>3</sub> MXenes
+                        </p>
+                        <p style="margin:3px 0 0; font-size:0.75rem; color:var(--text-muted);">
+                            Borge-Durán, I.; Paul, A.; Grinberg, I. &nbsp;·&nbsp;
+                            <em>Chem. Mater.</em> <strong style="color:#fff;">35</strong>, 7442–7449 (2023)
+                            &nbsp;·&nbsp; Bar-Ilan University
+                        </p>
+                    </div>
+                    <a href="https://doi.org/10.1021/acs.chemmater.3c00367" target="_blank"
+                        style="flex-shrink:0; display:inline-flex; align-items:center; gap:6px; padding:5px 12px; border-radius:50px; background:rgba(253,224,71,0.08); border:1px solid rgba(253,224,71,0.25); color:var(--c-gold); font-size:0.75rem; font-weight:600; text-decoration:none; text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap;">
+                        <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:0.7rem;"></i>
+                        10.1021/acs.chemmater.3c00367
+                    </a>
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- ══════════════════════════════════════
+             SLIDE 3: MXenes — What Are They?
+             ══════════════════════════════════════ -->
+        <section class="slide">
+            <h2
+                style="font-size:3rem; margin-bottom:2rem; margin-top:-50px; text-align:center; background:linear-gradient(90deg,#fff,var(--c-cyan)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;">
+                MXenes: What are they?
+            </h2>
+
+            <div style="display:flex; gap:50px; align-items:center; max-width:1500px; margin:0 auto; padding:20px;">
+
+                <!-- LEFT PANEL -->
+                <div
+                    style="flex:1; padding:40px; background:rgba(255,255,255,0.03); border-radius:20px; border:1px solid rgba(255,255,255,0.1); backdrop-filter:blur(10px);">
+
+                    <p style="font-size:1.2rem; color:var(--text-muted); line-height:1.6; margin-bottom:25px;">
+                        They are a large family of
+                        <strong style="color:var(--c-bronze);">two-dimensional (2D) transition metal carbides and
+                            nitrides</strong>.
+                        Their structural versatility enables tailor-made magnetic and electronic properties.
+                    </p>
+
+                    <!-- Formula box -->
+                    <div
+                        style="background:rgba(124,58,237,0.15); padding:25px; border-radius:15px; border-left:5px solid var(--c-purple); margin-bottom:30px;">
+                        <code
+                            style="font-size:2.5rem; font-family:'JetBrains Mono',monospace; color:#fff; display:block; margin-bottom:20px; text-align:center;">
+                            M<sub>n+1</sub>X<sub>n</sub>T<sub>x</sub>
+                        </code>
+                        <div
+                            style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px; font-size:1.3rem; color:#ddd; border-top:1px solid rgba(255,255,255,0.1); padding-top:20px;">
+                            <div>
+                                <strong style="color:var(--c-purple);">M:</strong> Metal<br>
+                                <span style="font-size:0.85em; opacity:0.8;">(Ti, V, Nb…)</span>
+                            </div>
+                            <div><strong style="color:var(--c-purple);">X:</strong> C / N</div>
+                            <div>
+                                <strong style="color:var(--c-purple);">T<sub>x</sub>:</strong> Surface Group<br>
+                                <span style="font-size:0.85em; opacity:0.8;">(-F, -O, -OH)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bullet points -->
+                    <ul
+                        style="list-style:none; padding:0; font-size:1.1rem; color:var(--text-muted); line-height:1.8; margin:0;">
+                        <li style="margin-bottom:10px;">
+                            <i class="fas fa-check-circle" style="color:var(--c-green); margin-right:10px;"></i>
+                            Intrinsic 2D magnetic metals
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle" style="color:var(--c-green); margin-right:10px;"></i>
+                            High thermal stability
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- RIGHT PANEL: image -->
+                <div style="flex:1.2; background:#fff; padding:20px; border-radius:15px;">
+                    <img src="1.png" style="width:100%; display:block;" alt="MXenes Structure">
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ══════════════════════════════════════
+             SLIDE 3: WORK PLATFORM
+             ══════════════════════════════════════ -->
+        <section class="slide">
+            <h2
+                style="font-size:3rem; margin-bottom:2rem; margin-top:-50px; text-align:center; background:linear-gradient(90deg,#fff,var(--c-cyan)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;">
+                Work Platform
+            </h2>
+
+            <div style="display:flex; gap:50px; align-items:center; max-width:1500px; margin:0 auto; padding:20px;">
+
+                <!-- LEFT: image -->
+                <div style="flex:0.85; background:#fff; padding:10px; border-radius:15px; align-self:center;">
+                    <img src="2.jpg" style="width:100%; display:block; border-radius:10px;"
+                        alt="Solid Solution Structure">
+                </div>
+
+                <!-- RIGHT: content panel -->
+                <div
+                    style="flex:1.15; padding:30px 40px; background:rgba(30,41,59,0.6); border-radius:20px; border:1px solid rgba(0,255,255,0.2); backdrop-filter:blur(10px);">
+
+                    <h3
+                        style="font-size:2.2rem; margin:0 0 15px; background:linear-gradient(90deg,#fff,var(--c-cyan)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;">
+                        Solid Solution
+                    </h3>
+
+                    <div
+                        style="font-family:'Inter',sans-serif; font-weight:500; font-size:2rem; color:#fff; margin-bottom:8px; line-height:1.3;">
+                        <span
+                            style="color:var(--c-cyan);">(Nb<sub>1−α</sub>Ti<sub>α</sub>)<sub>4</sub>C<sub>3</sub>T<sub>x</sub></span>
+                    </div>
+                    <div
+                        style="font-size:0.75rem; color:var(--text-muted); font-family:'JetBrains Mono',monospace; margin-bottom:18px;">
+                        α = substitution fraction &nbsp;·&nbsp; T<sub>x</sub> = surface terminations
+                    </div>
+
+                    <!-- Badge -->
+                    <div
+                        style="display:inline-flex; align-items:center; gap:10px; background:rgba(74,222,128,0.15); border:1px solid var(--c-green); padding:6px 14px; border-radius:50px; margin-bottom:25px;">
+                        <i class="fa-solid fa-flask" style="color:var(--c-green); font-size:0.9rem;"></i>
+                        <span
+                            style="color:var(--c-green); font-weight:600; font-size:0.9rem; letter-spacing:0.5px; text-transform:uppercase;">Synthesized
+                            and Experimentally Characterized</span>
+                    </div>
+
+                    <!-- Feature rows -->
+                    <div style="margin-bottom:25px; display:flex; flex-direction:column; gap:18px;">
+
+                        <div style="display:flex; gap:15px; align-items:flex-start;">
+                            <div
+                                style="background:rgba(255,255,255,0.1); padding:8px; border-radius:8px; margin-top:3px;">
+                                <i class="fa-solid fa-vial" style="color:var(--c-cyan); font-size:1rem;"></i>
+                            </div>
+                            <div>
+                                <strong style="color:#fff; display:block; margin-bottom:4px;">Materials
+                                    Engineering:</strong>
+                                <span style="font-size:1.1rem; color:var(--text-muted);">20% substitution of Nb by Ti
+                                    ($x = 0.2$) in the solid solution.</span>
+                            </div>
+                        </div>
+
+                        <div style="display:flex; gap:15px; align-items:flex-start;">
+                            <div
+                                style="background:rgba(255,255,255,0.1); padding:8px; border-radius:8px; margin-top:3px;">
+                                <i class="fa-solid fa-laptop-code" style="color:var(--c-purple); font-size:1rem;"></i>
+                            </div>
+                            <div>
+                                <strong style="color:#fff; display:block; margin-bottom:4px;">Theoretical
+                                    Prediction:</strong>
+                                <span style="font-size:1.1rem; color:var(--text-muted);">Published results using DFT+U
+                                    confirm its magnetic nature with an <strong style="color:var(--c-purple);">AFM
+                                        (antiferromagnetic) ground state</strong>.</span>
+                            </div>
+                        </div>
+
+                        <div style="display:flex; gap:15px; align-items:flex-start;">
+                            <div
+                                style="background:rgba(255,255,255,0.1); padding:8px; border-radius:8px; margin-top:3px;">
+                                <i class="fa-solid fa-magnet" style="color:var(--c-cyan); font-size:1rem;"></i>
+                            </div>
+                            <div>
+                                <strong style="color:#fff; display:block; margin-bottom:4px;">Key Finding:</strong>
+                                <span style="font-size:1.1rem; color:var(--text-muted);">Although Ti is non-magnetic,
+                                    <span style="color:var(--c-cyan); text-shadow:0 0 10px rgba(34,211,238,0.4);">its
+                                        incorporation is essential to induce magnetic ordering</span>.</span>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Gold milestone box -->
+                    <div
+                        style="margin-top:30px; background:rgba(253,224,71,0.1); border:1px solid var(--c-gold); padding:25px 30px; border-radius:16px; display:flex; flex-direction:column; gap:20px;">
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <i class="fa-solid fa-trophy" style="font-size:1.5rem; color:var(--c-gold);"></i>
+                            <span style="font-size:1.1rem; color:#fff; line-height:1.4;">
+                                <strong>Milestone:</strong> A new candidate for the prestigious family of <span
+                                    style="color:var(--c-gold);">2D magnetic materials</span>.
+                            </span>
+                        </div>
+
+                        <div
+                            style="display:flex; align-items:center; gap:15px; margin-top:5px; padding-top:10px; border-top:1px solid rgba(253,224,71,0.2);">
+                            <i class="fa-solid fa-arrow-right-long"
+                                style="font-size:1.2rem; color:var(--text-muted); margin-left:5px;"></i>
+                            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                                <span
+                                    style="background:rgba(34,211,238,0.15); padding:4px 10px; border-radius:20px; color:var(--c-cyan); font-size:0.85rem; border:1px solid rgba(34,211,238,0.3);">SOT-MRAM</span>
+                                <span
+                                    style="background:rgba(167,139,250,0.15); padding:4px 10px; border-radius:20px; color:var(--c-purple); font-size:0.85rem; border:1px solid rgba(167,139,250,0.3);">Spintronic
+                                    Logic</span>
+                                <span
+                                    style="background:rgba(74,222,128,0.15); padding:4px 10px; border-radius:20px; color:var(--c-green); font-size:0.85rem; border:1px solid rgba(74,222,128,0.3);">Racetrack
+                                    Memory</span>
+                                <span
+                                    style="background:rgba(251,146,60,0.15); padding:4px 10px; border-radius:20px; color:#fb923c; font-size:0.85rem; border:1px solid rgba(251,146,60,0.3);">Flexible
+                                    Sensors</span>
+                                <span
+                                    style="background:rgba(236,72,153,0.15); padding:4px 10px; border-radius:20px; color:var(--c-pink); font-size:0.85rem; border:1px solid rgba(236,72,153,0.3);">Quantum
+                                    Computing</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- ══════════════════════════════════════
+             SLIDE: THE SCIENTIFIC QUESTION
+             ══════════════════════════════════════ -->
+        <section class="slide">
+            <div
+                style="width:100%; max-width:1350px; margin:0 auto; display:flex; flex-direction:column; gap:28px; height:88vh; justify-content:center;">
+
+                <!-- Title -->
+                <div style="text-align:center;">
+                    <p
+                        style="font-size:0.8rem; text-transform:uppercase; letter-spacing:3px; color:var(--text-muted); margin:0 0 8px;">
+                        Research Motivation</p>
+                    <h2
+                        style="font-family:'Inter',sans-serif; font-weight:800; font-size:2.8rem; margin:0; letter-spacing:-1px;
+                                background:linear-gradient(90deg,#fff 40%,var(--c-purple)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;">
+                        The Scientific Question
+                    </h2>
+                </div>
+
+                <!-- Two-column layout -->
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px; flex:1; min-height:0;">
+
+                    <!-- LEFT: Known starting point -->
+                    <div
+                        style="background:rgba(34,211,238,0.05); border:1px solid rgba(34,211,238,0.18); border-radius:18px; padding:32px; display:flex; flex-direction:column; gap:20px; justify-content:center;">
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <div
+                                style="width:38px; height:38px; border-radius:50%; border:2px solid var(--c-cyan); background:rgba(34,211,238,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                <i class="fa-solid fa-flask" style="color:var(--c-cyan); font-size:0.95rem;"></i>
+                            </div>
+                            <h3 style="font-size:1.25rem; color:#fff; margin:0;">What we demonstrated</h3>
+                        </div>
+                        <p style="font-size:1.1rem; color:var(--text-muted); line-height:1.7; margin:0;">
+                            The solid solution
+                            <strong
+                                style="color:var(--c-cyan);">(Nb<sub>0.8</sub>Ti<sub>0.2</sub>)<sub>4</sub>C<sub>3</sub>T<sub>x</sub></strong>
+                            exists experimentally. Our DFT published calculations confirm it is
+                            <strong style="color:var(--c-cyan);">magnetic</strong> — a striking result given that
+                            neither Nb nor Ti is magnetic on its own.
+                        </p>
+                        <div
+                            style="display:inline-flex; align-items:center; gap:8px; background:rgba(74,222,128,0.1); border:1px solid rgba(74,222,128,0.3); padding:6px 14px; border-radius:50px; align-self:flex-start;">
+                            <i class="fa-solid fa-circle-check" style="color:var(--c-green); font-size:0.85rem;"></i>
+                            <span
+                                style="color:var(--c-green); font-size:0.82rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Synthesized
+                                &amp; theoretically confirmed</span>
+                        </div>
+
+                        <!-- Effect of Terminations (Tx) -->
+                        <div
+                            style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:22px 24px; margin-top:5px;">
+                            <h4
+                                style="color:#fff; font-size:1rem; margin:0 0 16px 0; display:flex; align-items:center; gap:8px;">
+                                Role of Surface Terminations ($T_x$)
+                            </h4>
+                            <div style="display:flex; flex-direction:column; gap:15px;">
+                                <div style="display:flex; align-items:center; gap:12px; font-size:0.95rem;">
+                                    <span
+                                        style="background:rgba(239,68,68,0.15); color:var(--c-ind); padding:4px 10px; border-radius:6px; font-family:'JetBrains Mono',monospace; font-weight:700; width:85px; text-align:center;">=
+                                        O</span>
+                                    <span style="color:var(--text-muted);"><i class="fa-solid fa-xmark"
+                                            style="color:var(--c-ind); margin-right:6px;"></i> Destroys magnetism
+                                        (strongly passivating)</span>
+                                </div>
+                                <div style="display:flex; align-items:center; gap:12px; font-size:0.95rem;">
+                                    <span
+                                        style="background:rgba(74,222,128,0.15); color:var(--c-green); padding:4px 10px; border-radius:6px; font-family:'JetBrains Mono',monospace; font-weight:700; width:85px; text-align:center;">=
+                                        OH/F/O</span>
+                                    <span style="color:var(--text-muted);"><i class="fa-solid fa-check"
+                                            style="color:var(--c-green); margin-right:6px;"></i> Preserves magnetic
+                                        ordering (mixed)</span>
+                                </div>
+                                <div style="display:flex; align-items:center; gap:12px; font-size:0.95rem;">
+                                    <span
+                                        style="background:rgba(74,222,128,0.15); color:var(--c-green); padding:4px 10px; border-radius:6px; font-family:'JetBrains Mono',monospace; font-weight:700; width:85px; text-align:center;">=
+                                        F/Cl</span>
+                                    <span style="color:var(--text-muted);"><i class="fa-solid fa-check"
+                                            style="color:var(--c-green); margin-right:6px;"></i> Preserves magnetic
+                                        ordering (halogens)</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Paper citation -->
+                        <div
+                            style="display:flex; align-items:center; gap:12px; padding:11px 16px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:10px; margin-top:auto;">
+                            <div
+                                style="width:30px; height:30px; border-radius:7px; background:rgba(253,224,71,0.1); border:1px solid rgba(253,224,71,0.25); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                <i class="fa-solid fa-file-lines" style="color:var(--c-gold); font-size:0.8rem;"></i>
+                            </div>
+                            <div style="flex:1; min-width:0;">
+                                <p style="margin:0; font-size:0.78rem; color:#fff; line-height:1.4;">
+                                    <strong>From Non-Magnetic to Magnetic:</strong> A First-Principles Study of the
+                                    Emergence of Magnetism in 2D
+                                    (Nb<sub>1–x</sub>Ti<sub>x</sub>)<sub>4</sub>C<sub>3</sub> MXenes
+                                </p>
+                                <p style="margin:2px 0 0; font-size:0.7rem; color:var(--text-muted);">
+                                    Borge-Durán, I.; Paul, A.; Grinberg, I. &nbsp;·&nbsp;
+                                    <em>Chem. Mater.</em> <strong style="color:#fff;">35</strong>, 7442–7449 (2023)
+                                </p>
+                            </div>
+                            <a href="https://doi.org/10.1021/acs.chemmater.3c00367" target="_blank"
+                                style="flex-shrink:0; display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:50px; background:rgba(253,224,71,0.08); border:1px solid rgba(253,224,71,0.25); color:var(--c-gold); font-size:0.68rem; font-weight:600; text-decoration:none; text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap;">
+                                <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:0.65rem;"></i>
+                                DOI
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT: The open question -->
+                    <div
+                        style="background:rgba(167,139,250,0.05); border:1px solid rgba(167,139,250,0.2); border-radius:18px; border-left:4px solid var(--c-purple); padding:32px; display:flex; flex-direction:column; gap:20px; justify-content:center;">
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <div
+                                style="width:38px; height:38px; border-radius:50%; border:2px solid var(--c-purple); background:rgba(167,139,250,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                <i class="fa-solid fa-circle-question"
+                                    style="color:var(--c-purple); font-size:0.95rem;"></i>
+                            </div>
+                            <h3 style="font-size:1.25rem; color:#fff; margin:0;">What if we go further?</h3>
+                        </div>
+                        <p style="font-size:1.1rem; color:var(--text-muted); line-height:1.7; margin:0;">
+                            Since Ti substitution triggers magnetism, what happens if we
+                            <strong style="color:var(--c-purple);">replace Ti with other 3d transition metals</strong>?
+                            Can we tune — or even enhance — the magnetic properties by exploring the rest of the 3d
+                            family?
+                        </p>
+
+                        <!-- 3d metal row -->
+                        <div>
+                            <p
+                                style="font-size:0.75rem; text-transform:uppercase; letter-spacing:2px; color:var(--text-muted); margin:0 0 10px;">
+                                Candidate substitutions — 3d family</p>
+                            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                                <div style="text-align:center;">
+                                    <div
+                                        style="width:46px; height:46px; border-radius:50%; border:2px solid rgba(255,255,255,0.2); background:rgba(255,255,255,0.05); display:flex; align-items:center; justify-content:center; font-size:1rem; font-weight:700; color:var(--text-muted);">
+                                        Nb</div>
+                                    <span style="font-size:0.6rem; color:var(--text-muted);">host</span>
+                                </div>
+                                <span style="color:var(--text-muted); font-size:1.1rem;">+</span>
+                                <div style="text-align:center;">
+                                    <div
+                                        style="width:42px; height:42px; border-radius:50%; border:2px solid var(--c-cyan); background:rgba(34,211,238,0.12); display:flex; align-items:center; justify-content:center; font-size:0.95rem; font-weight:700; color:var(--c-cyan); box-shadow:0 0 12px rgba(34,211,238,0.25);">
+                                        Ti</div>
+                                    <span style="font-size:0.6rem; color:var(--c-cyan);">known</span>
+                                </div>
+                                <span style="color:var(--text-muted); font-size:0.9rem;">→</span>
+                                <!-- Unexplored candidates -->
+                                <div
+                                    style="width:42px; height:42px; border-radius:50%; border:1.5px solid rgba(167,139,250,0.4); background:rgba(167,139,250,0.08); display:flex; align-items:center; justify-content:center; font-size:0.95rem; font-weight:700; color:#fff;">
+                                    Sc</div>
+                                <div
+                                    style="width:42px; height:42px; border-radius:50%; border:1.5px solid rgba(167,139,250,0.4); background:rgba(167,139,250,0.08); display:flex; align-items:center; justify-content:center; font-size:0.95rem; font-weight:700; color:#fff;">
+                                    V</div>
+                                <div
+                                    style="width:42px; height:42px; border-radius:50%; border:1.5px solid rgba(167,139,250,0.4); background:rgba(167,139,250,0.08); display:flex; align-items:center; justify-content:center; font-size:0.95rem; font-weight:700; color:#fff;">
+                                    Cr</div>
+                                <div
+                                    style="width:42px; height:42px; border-radius:50%; border:1.5px solid rgba(167,139,250,0.4); background:rgba(167,139,250,0.08); display:flex; align-items:center; justify-content:center; font-size:0.95rem; font-weight:700; color:#fff;">
+                                    Mn</div>
+                                <div
+                                    style="width:42px; height:42px; border-radius:50%; border:1.5px solid rgba(167,139,250,0.4); background:rgba(167,139,250,0.08); display:flex; align-items:center; justify-content:center; font-size:0.95rem; font-weight:700; color:#fff;">
+                                    Fe</div>
+                                <div
+                                    style="width:42px; height:42px; border-radius:50%; border:1.5px solid rgba(167,139,250,0.4); background:rgba(167,139,250,0.08); display:flex; align-items:center; justify-content:center; font-size:0.95rem; font-weight:700; color:#fff;">
+                                    Co</div>
+                                <div
+                                    style="width:42px; height:42px; border-radius:50%; border:1.5px solid rgba(167,139,250,0.4); background:rgba(167,139,250,0.08); display:flex; align-items:center; justify-content:center; font-size:0.95rem; font-weight:700; color:#fff;">
+                                    Ni</div>
+                            </div>
+                        </div>
+
+                        <p
+                            style="font-size:0.95rem; color:var(--text-muted); font-style:italic; margin:0; border-left:3px solid rgba(167,139,250,0.4); padding-left:12px; line-height:1.6;">
+                            What new magnetic phases, exchange interactions, or DMI strengths might emerge?
+                            This is largely <strong style="color:var(--c-purple);">terra incognita</strong>.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ══════════════════════════════════════
+             SLIDE 6: THE UNEXPLORED FRONTIER
+             ══════════════════════════════════════ -->
+        <section class="slide">
+            <div
+                style="background:var(--glass-bg); backdrop-filter:blur(24px); border:1px solid var(--glass-border); border-radius:24px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.5); max-width:1300px; width:95%; padding:50px; margin:0 auto; display:flex; flex-direction:column; justify-content:space-between; min-height:60vh;">
+
+                <!-- 1. Element strip -->
+                <div style="text-align:center; margin-bottom:20px;">
+                    <p
+                        style="font-size:1.2rem; color:var(--text-muted); margin-bottom:20px; text-transform:uppercase; letter-spacing:2px;">
+                        The Unexplored Frontier</p>
+                    <div style="display:flex; justify-content:center; gap:20px; align-items:center; flex-wrap:wrap;">
+
+                        <div
+                            style="width:60px; height:60px; border-radius:50%; border:1px solid rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; font-size:1.2rem; color:rgba(255,255,255,0.5);">
+                            Sc</div>
+
+                        <!-- HERO: Ti -->
+                        <div
+                            style="width:90px; height:90px; border-radius:50%; border:2px solid var(--c-cyan); background:rgba(6,182,212,0.1); display:flex; flex-direction:column; align-items:center; justify-content:center; box-shadow:0 0 30px rgba(6,182,212,0.3); transform:scale(1.1); z-index:10;">
+                            <span style="font-size:2rem; font-weight:700; color:#fff;">Ti</span>
+                            <span style="font-size:0.7rem; color:var(--c-cyan);">EXP</span>
+                        </div>
+
+                        <div
+                            style="width:60px; height:60px; border-radius:50%; border:1px solid rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; font-size:1.2rem; color:#fff;">
+                            V</div>
+                        <div
+                            style="width:60px; height:60px; border-radius:50%; border:1px solid rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; font-size:1.2rem; color:#fff;">
+                            Cr</div>
+                        <div
+                            style="width:60px; height:60px; border-radius:50%; border:1px solid rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; font-size:1.2rem; color:#fff;">
+                            Mn</div>
+                        <div
+                            style="width:60px; height:60px; border-radius:50%; border:1px solid rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; font-size:1.2rem; color:#fff;">
+                            Fe</div>
+                        <div
+                            style="width:60px; height:60px; border-radius:50%; border:1px solid rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; font-size:1.2rem; color:#fff;">
+                            Co</div>
+                        <div
+                            style="width:60px; height:60px; border-radius:50%; border:1px solid rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; font-size:1.2rem; color:#fff;">
+                            Ni</div>
+                        <div
+                            style="width:60px; height:60px; border-radius:50%; border:1px solid rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; font-size:1.2rem; color:#fff;">
+                            Cu</div>
+                        <div
+                            style="width:60px; height:60px; border-radius:50%; border:1px solid rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; font-size:1.2rem; color:#fff;">
+                            Zn</div>
+                    </div>
+                </div>
+
+                <!-- Deco line -->
+                <div
+                    style="width:100%; height:1px; background:linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent); opacity:0.3; margin:30px 0;">
+                </div>
+
+                <!-- 2. Two-column content -->
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:40px; align-items:center;">
+
+                    <!-- Left: Experimental reference -->
+                    <div
+                        style="padding-right:20px; border-right:1px solid rgba(255,255,255,0.1); text-align:center; display:flex; flex-direction:column; align-items:center;">
+                        <h3
+                            style="color:var(--text-muted); font-size:1.3rem; margin-bottom:12px; text-transform:uppercase; letter-spacing:1px;">
+                            Experimental Reference</h3>
+                        <div
+                            style="font-size:2.4rem; color:#fff; font-family:'Inter',sans-serif; margin-bottom:15px; font-weight:300; white-space:nowrap;">
+                            (Nb<sub style="color:var(--text-muted);">0.8</sub><span
+                                style="color:var(--c-cyan);">Ti</span><sub
+                                style="color:var(--text-muted);">0.2</sub>)<sub>4</sub>C<sub>3</sub>T<sub>x</sub>
+                        </div>
+                        <div
+                            style="display:inline-flex; align-items:center; gap:10px; background:rgba(34,211,238,0.1); padding:8px 16px; border-radius:30px; border:1px solid rgba(34,211,238,0.3);">
+                            <i class="fa-solid fa-flask" style="color:var(--c-cyan);"></i>
+                            <span style="font-size:0.9rem; color:var(--c-cyan); font-weight:600;">Synthesized &amp;
+                                Characterized</span>
+                        </div>
+                    </div>
+
+                    <!-- Right: The question -->
+                    <div style="padding-left:10px;">
+                        <h3 style="font-size:1.6rem; color:#fff; margin-bottom:15px; font-weight:300;">
+                            What if we… <span style="font-style:italic; color:var(--c-purple);">swap the central
+                                piece?</span>
+                        </h3>
+                        <p style="font-size:1.2rem; color:var(--text-muted); line-height:1.5;">
+                            This prediction forces us to ask:<br>
+                            <strong>What spin phenomena lie unexplored in the 3d and 4d families?</strong>
+                            <span style="display:block; margin-top:10px; font-weight:300; font-size:0.95em;">
+                                Candidates such as <span
+                                    style="color:var(--c-cyan); font-weight:600;">(Nb,Zr)<sub>4</sub>C<sub>3</sub></span>
+                                have already been synthesized, but their magnetism remains <em>terra incognita</em>.
+                            </span>
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- ══════════════════════════════════════
+             SLIDE 4: PHYSICAL PROPERTIES VIA DFT
+             ══════════════════════════════════════ -->
+        <section class="slide">
+            <h2 class="hero-title" style="font-size:3rem; margin-bottom:3rem;">
+                Physical Properties to Explore via DFT
+            </h2>
+
+            <div
+                style="display:grid; grid-template-columns:repeat(6,1fr); gap:30px; max-width:1400px; margin:0 auto; height:75vh; width:100%;">
+
+                <!-- 01 Stoner -->
+                <div onclick="document.getElementById('stoner-modal').classList.add('show')"
+                    style="--c:var(--c-ind); grid-column:span 2; background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:16px; padding:25px; display:flex; flex-direction:column; position:relative; overflow:hidden; border-top:4px solid var(--c-ind); cursor:pointer; transition:border-color 0.2s, background 0.2s;"
+                    onmouseenter="this.style.borderColor='rgba(239,68,68,0.6)'; this.style.background='rgba(239,68,68,0.07)';"
+                    onmouseleave="this.style.borderColor='var(--glass-border)'; this.style.background='var(--glass-bg)';">
+                    <div
+                        style="font-size:4rem; font-weight:800; color:rgba(255,255,255,0.05); position:absolute; top:-10px; right:0; font-family:'JetBrains Mono';">
+                        01</div>
+                    <h3 style="font-size:1.6rem; color:#fff; margin:15px 0 0;">Stoner Criterion</h3>
+                    <div
+                        style="flex:1; display:flex; align-items:center; justify-content:center; color:var(--c-ind); font-size:1.35rem;">
+                        $$ I \cdot N(E_F) > 1 $$
+                    </div>
+                    <div
+                        style="position:absolute; bottom:9px; right:14px; font-size:0.65rem; color:rgba(239,68,68,0.45); font-family:'JetBrains Mono',monospace; letter-spacing:0.5px;">
+                        <i class="fa-solid fa-up-right-and-down-left-from-center" style="font-size:0.6rem;"></i> more
+                    </div>
+                </div>
+
+
+                <!-- 02 Exchange -->
+                <div
+                    style="--c:var(--c-gold); grid-column:span 2; background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:16px; padding:25px; display:flex; flex-direction:column; position:relative; overflow:hidden; border-top:4px solid var(--c-gold);">
+                    <div
+                        style="font-size:4rem; font-weight:800; color:rgba(255,255,255,0.05); position:absolute; top:-10px; right:0; font-family:'JetBrains Mono';">
+                        02</div>
+                    <h3 style="font-size:1.6rem; color:#fff; margin:15px 0 0;">Exchange ($J$ coupling)</h3>
+                    <div
+                        style="flex:1; display:flex; align-items:center; justify-content:center; color:var(--c-gold); font-size:1.35rem;">
+                        $$ \mathcal{H} = -\sum_{i,j} J_{ij} \mathbf{S}_i \cdot \mathbf{S}_j $$
+                    </div>
+                </div>
+
+                <!-- 03 MAE -->
+                <div
+                    style="--c:var(--c-blue); grid-column:span 2; background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:16px; padding:25px; display:flex; flex-direction:column; position:relative; overflow:hidden; border-top:4px solid var(--c-blue);">
+                    <div
+                        style="font-size:4rem; font-weight:800; color:rgba(255,255,255,0.05); position:absolute; top:-10px; right:0; font-family:'JetBrains Mono';">
+                        03</div>
+                    <h3 style="font-size:1.6rem; color:#fff; margin:15px 0 0; text-align:center;">Magnetocrystalline
+                        Anisotropy Energy (MAE)</h3>
+                    <div
+                        style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; color:var(--c-blue); font-size:1.35rem;">
+                        $$ \text{MAE} = E_{[100]} - E_{[001]} $$
+                        <span
+                            style="font-size:0.75rem; color:var(--text-muted); text-align:center; font-family:'JetBrains Mono',monospace;">via
+                            spin-orbit coupling &nbsp; $\mathcal{H}_{SOC} = \xi\,\mathbf{L}\cdot\mathbf{S}$</span>
+                    </div>
+                </div>
+
+                <!-- 04 DMI -->
+                <div onclick="document.getElementById('dmi-modal').classList.add('show')"
+                    style="--c:var(--c-purple); grid-column:span 3; background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:16px; padding:25px; display:flex; flex-direction:column; position:relative; overflow:hidden; border-top:4px solid var(--c-purple); cursor:pointer; transition:border-color 0.2s, background 0.2s;"
+                    onmouseenter="this.style.borderColor='rgba(167,139,250,0.6)'; this.style.background='rgba(167,139,250,0.07)';"
+                    onmouseleave="this.style.borderColor='var(--glass-border)'; this.style.background='var(--glass-bg)';">
+                    <div
+                        style="font-size:4rem; font-weight:800; color:rgba(255,255,255,0.05); position:absolute; top:-10px; right:0; font-family:'JetBrains Mono';">
+                        04</div>
+                    <h3 style="font-size:1.6rem; color:#fff; margin:15px 0 0;">Dzyaloshinskii–Moriya Interaction (DMI)
+                    </h3>
+                    <div
+                        style="flex:1; display:flex; align-items:center; justify-content:center; color:var(--c-purple); font-size:1.35rem;">
+                        $$ \mathcal{H}_{DMI} = \sum_{i,j} \mathbf{D}_{ij} \cdot (\mathbf{S}_i \times \mathbf{S}_j) $$
+                    </div>
+                    <div
+                        style="position:absolute; bottom:9px; right:14px; font-size:0.65rem; color:rgba(167,139,250,0.45); font-family:'JetBrains Mono',monospace; letter-spacing:0.5px;">
+                        <i class="fa-solid fa-up-right-and-down-left-from-center" style="font-size:0.6rem;"></i> more
+                    </div>
+                </div>
+
+
+                <!-- 05 Transition Temperatures -->
+                <div
+                    style="--c:var(--c-green); grid-column:span 3; background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:16px; padding:25px; display:flex; flex-direction:column; position:relative; overflow:hidden; border-top:4px solid var(--c-green);">
+                    <div
+                        style="font-size:4rem; font-weight:800; color:rgba(255,255,255,0.05); position:absolute; top:-10px; right:0; font-family:'JetBrains Mono';">
+                        05</div>
+                    <h3 style="font-size:1.6rem; color:#fff; margin:15px 0 0;">Transition Temperatures</h3>
+                    <div
+                        style="flex:1; display:flex; align-items:center; justify-content:center; color:var(--c-green); font-size:1.35rem;">
+                        $$ P \propto e^{-\frac{\Delta E}{k_B T}} $$
+                    </div>
+                    <div style="margin-top:auto; padding-top:10px; border-top:1px solid rgba(255,255,255,0.1);">
+                        <div style="text-align:center; color:#fff; font-size:1.1rem; margin-bottom:5px;">
+                            Calculation of <span style="color:var(--c-green);">Néel ($T_N$)</span> / <span
+                                style="color:var(--c-green);">Curie ($T_C$)</span>
+                        </div>
+                        <div style="text-align:center; font-size:0.9rem; color:var(--text-muted);">
+                            via <strong style="color:#fff; text-transform:uppercase; letter-spacing:0.5px;">Monte Carlo
+                                Simulated Annealing (MCSA)</strong>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ══════════════════════════════════════
+             SLIDE: BRIDGES TO QUANTUM MANY-BODY PHYSICS
+             ══════════════════════════════════════ -->
+        <section class="slide">
+            <div
+                style="width:100%; max-width:1350px; margin:0 auto; display:flex; flex-direction:column; gap:22px; height:88vh; justify-content:center;">
+
+                <!-- Header -->
+                <div style="text-align:center;">
+                    <p
+                        style="font-size:0.8rem; text-transform:uppercase; letter-spacing:3px; color:var(--text-muted); margin:0 0 8px;">
+                        Intersection of Research Areas</p>
+                    <h2
+                        style="font-family:'Inter',sans-serif; font-weight:800; font-size:2.8rem; margin:0; letter-spacing:-1px;
+                               background:linear-gradient(90deg,var(--c-cyan) 0%,var(--c-purple) 60%,var(--c-gold));
+                               -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;">
+                        Bridges to Quantum Many-Body Physics
+                    </h2>
+                    <p style="font-size:1rem; color:var(--text-muted); margin:8px 0 0; font-style:italic;">
+                        Where 2D spin engineering meets quantum information & topological order
+                    </p>
+                </div>
+
+                <!-- 2×2 Bento Grid -->
+                <div
+                    style="display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; gap:18px; flex:1; min-height:0;">
+
+                    <!-- 1: Topological Protection -->
+                    <div onclick="document.getElementById('winding-modal').classList.add('show')"
+                        style="background:rgba(34,211,238,0.05); border:1px solid rgba(34,211,238,0.2); border-radius:18px; border-top:4px solid var(--c-cyan); padding:26px 28px; display:flex; gap:20px; align-items:flex-start; position:relative; overflow:hidden; cursor:pointer; transition:border-color 0.2s, background 0.2s;"
+                        onmouseenter="this.style.borderColor='rgba(34,211,238,0.5)'; this.style.background='rgba(34,211,238,0.09)';"
+                        onmouseleave="this.style.borderColor='rgba(34,211,238,0.2)'; this.style.background='rgba(34,211,238,0.05)';">
+                        <div
+                            style="font-family:'JetBrains Mono',monospace; font-size:4.5rem; font-weight:800; color:rgba(34,211,238,0.05); position:absolute; top:-12px; right:8px; line-height:1;">
+                            01</div>
+                        <div
+                            style="width:44px; height:44px; border-radius:50%; border:2px solid var(--c-cyan); background:rgba(34,211,238,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px;">
+                            <i class="fa-solid fa-shield-halved" style="color:var(--c-cyan); font-size:1.1rem;"></i>
+                        </div>
+                        <div>
+                            <h3 style="font-size:1.2rem; color:#fff; margin:0 0 10px;">Topological Protection</h3>
+                            <div style="display:flex; gap:22px;">
+                                <div style="flex:1;">
+                                    <p
+                                        style="font-size:0.78rem; text-transform:uppercase; letter-spacing:1px; color:var(--c-cyan); margin:0 0 4px;">
+                                        My work</p>
+                                    <p style="font-size:0.95rem; color:var(--text-muted); line-height:1.5; margin:0;">
+                                        Skyrmions are <strong style="color:#fff;">topologically protected</strong> spin
+                                        textures — characterized by a non-trivial winding number $Q = \frac{1}{4\pi}\int
+                                        \mathbf{n}\cdot(\partial_x\mathbf{n}\times\partial_y\mathbf{n})\,d^2r$</p>
+                                </div>
+                                <div style="width:1px; background:rgba(255,255,255,0.08); flex-shrink:0;"></div>
+                                <div style="flex:1;">
+                                    <p
+                                        style="font-size:0.78rem; text-transform:uppercase; letter-spacing:1px; color:var(--text-muted); margin:0 0 4px;">
+                                        QMB Perspective</p>
+                                    <p style="font-size:0.95rem; color:var(--text-muted); line-height:1.5; margin:0;">
+                                        <strong style="color:#fff;">Topologically ordered</strong> condensed matter
+                                        systems as robust quantum substrates
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div
+                            style="position:absolute; bottom:9px; right:14px; font-size:0.65rem; color:rgba(34,211,238,0.4); font-family:'JetBrains Mono',monospace; letter-spacing:0.5px;">
+                            <i class="fa-solid fa-up-right-and-down-left-from-center" style="font-size:0.6rem;"></i>
+                            more
+                        </div>
+                    </div>
+
+                    <!-- 2: Quantum Memory -->
+                    <div onclick="document.getElementById('memory-modal').classList.add('show')"
+                        style="background:rgba(167,139,250,0.05); border:1px solid rgba(167,139,250,0.2); border-radius:18px; border-top:4px solid var(--c-purple); padding:26px 28px; display:flex; gap:20px; align-items:flex-start; position:relative; overflow:hidden; cursor:pointer; transition:border-color 0.2s,background 0.2s;"
+                        onmouseenter="this.style.borderColor='rgba(167,139,250,0.5)'; this.style.background='rgba(167,139,250,0.1)';"
+                        onmouseleave="this.style.borderColor='rgba(167,139,250,0.2)'; this.style.background='rgba(167,139,250,0.05)';">
+                        <div
+                            style="font-family:'JetBrains Mono',monospace; font-size:4.5rem; font-weight:800; color:rgba(167,139,250,0.05); position:absolute; top:-12px; right:8px; line-height:1;">
+                            02</div>
+                        <div
+                            style="width:44px; height:44px; border-radius:50%; border:2px solid var(--c-purple); background:rgba(167,139,250,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px;">
+                            <i class="fa-solid fa-memory" style="color:var(--c-purple); font-size:1.1rem;"></i>
+                        </div>
+                        <div>
+                            <h3 style="font-size:1.2rem; color:#fff; margin:0 0 10px;">Topological Quantum Memory</h3>
+                            <div style="display:flex; gap:22px;">
+                                <div style="flex:1;">
+                                    <p
+                                        style="font-size:0.78rem; text-transform:uppercase; letter-spacing:1px; color:var(--c-purple); margin:0 0 4px;">
+                                        My work</p>
+                                    <p style="font-size:0.95rem; color:var(--text-muted); line-height:1.5; margin:0;">
+                                        Skyrmion-based <strong style="color:#fff;">non-volatile memory</strong>:
+                                        racetrack, ferroelectric control, SOT-MRAM — all exploiting topological
+                                        stability</p>
+                                </div>
+                                <div style="width:1px; background:rgba(255,255,255,0.08); flex-shrink:0;"></div>
+                                <div style="flex:1;">
+                                    <p
+                                        style="font-size:0.78rem; text-transform:uppercase; letter-spacing:1px; color:var(--text-muted); margin:0 0 4px;">
+                                        QMB Perspective</p>
+                                    <p style="font-size:0.95rem; color:var(--text-muted); line-height:1.5; margin:0;">
+                                        Topologically ordered matter as <strong style="color:#fff;">quantum
+                                            memories</strong> — robust storage of quantum information</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3: Many-Body Hamiltonians -->
+                    <div onclick="document.getElementById('hamiltonian-modal').classList.add('show')"
+                        style="background:rgba(250,204,21,0.05); border:1px solid rgba(250,204,21,0.2); border-radius:18px; border-top:4px solid var(--c-gold); padding:26px 28px; display:flex; gap:20px; align-items:flex-start; position:relative; overflow:hidden; cursor:pointer; transition:border-color 0.2s,background 0.2s;"
+                        onmouseenter="this.style.borderColor='rgba(250,204,21,0.5)'; this.style.background='rgba(250,204,21,0.09)';"
+                        onmouseleave="this.style.borderColor='rgba(250,204,21,0.2)'; this.style.background='rgba(250,204,21,0.05)';">
+                        <div
+                            style="font-family:'JetBrains Mono',monospace; font-size:4.5rem; font-weight:800; color:rgba(250,204,21,0.05); position:absolute; top:-12px; right:8px; line-height:1;">
+                            03</div>
+                        <div
+                            style="width:44px; height:44px; border-radius:50%; border:2px solid var(--c-gold); background:rgba(250,204,21,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px;">
+                            <i class="fa-solid fa-atom" style="color:var(--c-gold); font-size:1.1rem;"></i>
+                        </div>
+                        <div>
+                            <h3 style="font-size:1.2rem; color:#fff; margin:0 0 10px;">Quantum Many-Body Hamiltonians
+                            </h3>
+                            <div style="display:flex; gap:22px;">
+                                <div style="flex:1;">
+                                    <p
+                                        style="font-size:0.78rem; text-transform:uppercase; letter-spacing:1px; color:var(--c-gold); margin:0 0 4px;">
+                                        My work</p>
+                                    <p style="font-size:0.95rem; color:var(--text-muted); line-height:1.5; margin:0;">
+                                        Exchange $J_{ij}$ and DMI Hamiltonians are <strong
+                                            style="color:#fff;">interacting
+                                            quantum spin models</strong> — the
+                                        quintessential many-body problem</p>
+                                </div>
+                                <div style="width:1px; background:rgba(255,255,255,0.08); flex-shrink:0;"></div>
+                                <div style="flex:1;">
+                                    <p
+                                        style="font-size:0.78rem; text-transform:uppercase; letter-spacing:1px; color:var(--text-muted); margin:0 0 4px;">
+                                        QMB Perspective</p>
+                                    <p style="font-size:0.95rem; color:var(--text-muted); line-height:1.5; margin:0;">
+                                        <strong style="color:#fff;">Quantum many-body systems</strong> — their
+                                        complexity, entanglement structure, and emergent phases
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4: Computational Methods -->
+                    <div onclick="document.getElementById('methods-modal').classList.add('show')"
+                        style="background:rgba(74,222,128,0.05); border:1px solid rgba(74,222,128,0.2); border-radius:18px; border-top:4px solid var(--c-green); padding:26px 28px; display:flex; gap:20px; align-items:flex-start; position:relative; overflow:hidden; cursor:pointer; transition:border-color 0.2s,background 0.2s;"
+                        onmouseenter="this.style.borderColor='rgba(74,222,128,0.5)'; this.style.background='rgba(74,222,128,0.09)';"
+                        onmouseleave="this.style.borderColor='rgba(74,222,128,0.2)'; this.style.background='rgba(74,222,128,0.05)';">
+                        <div
+                            style="font-family:'JetBrains Mono',monospace; font-size:4.5rem; font-weight:800; color:rgba(74,222,128,0.05); position:absolute; top:-12px; right:8px; line-height:1;">
+                            04</div>
+                        <div
+                            style="width:44px; height:44px; border-radius:50%; border:2px solid var(--c-green); background:rgba(74,222,128,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px;">
+                            <i class="fa-solid fa-calculator" style="color:var(--c-green); font-size:1.1rem;"></i>
+                        </div>
+                        <div>
+                            <h3 style="font-size:1.2rem; color:#fff; margin:0 0 10px;">Computational Methods</h3>
+                            <div style="display:flex; gap:22px;">
+                                <div style="flex:1;">
+                                    <p
+                                        style="font-size:0.78rem; text-transform:uppercase; letter-spacing:1px; color:var(--c-green); margin:0 0 4px;">
+                                        My work</p>
+                                    <p style="font-size:0.95rem; color:var(--text-muted); line-height:1.5; margin:0;">
+                                        DFT + <strong style="color:#fff;">tight-binding models</strong> are inherently
+                                        matrix/tensor methods operating in Hilbert spaces of many-electron systems</p>
+                                </div>
+                                <div style="width:1px; background:rgba(255,255,255,0.08); flex-shrink:0;"></div>
+                                <div style="flex:1;">
+                                    <p
+                                        style="font-size:0.78rem; text-transform:uppercase; letter-spacing:1px; color:var(--text-muted); margin:0 0 4px;">
+                                        QMB Perspective</p>
+                                    <p style="font-size:0.95rem; color:var(--text-muted); line-height:1.5; margin:0;">
+                                        <strong style="color:#fff;">Multi-linear-algebraic</strong> methods (tensor
+                                        networks, DMRG) to tackle quantum complexity
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Bottom bar -->
+                <div
+                    style="display:flex; align-items:center; gap:14px; padding:12px 20px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:12px; flex-shrink:0;">
+                    <i class="fa-solid fa-arrows-left-right" style="color:var(--c-cyan); font-size:1rem;"></i>
+                    <p style="margin:0; font-size:0.9rem; color:var(--text-muted); line-height:1.4;">
+                        These are not just analogies — they are <strong style="color:#fff;">the same physics</strong>,
+                        approached from complementary angles: first-principles materials design from one side, quantum
+                        information theory from the other.
+                    </p>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ══════════════════════════════════════
+             SLIDE 5: SKYRMION APPLICATIONS
+             ══════════════════════════════════════ -->
+        <section class="slide">
+            <h2
+                style="font-size:2.8rem; margin-bottom:2rem; text-align:center; background:linear-gradient(90deg,#fff,var(--c-cyan)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;">
+                Perspectives: <span style="font-weight:300; font-style:italic;">Applications in 2D Magnetic
+                    Materials</span>
+            </h2>
+
+            <div
+                style="display:grid; grid-template-columns:repeat(3,1fr); gap:25px; max-width:1400px; margin:0 auto; height:75vh; width:100%;">
+
+                <!-- 1. Racetrack Memory -->
+                <div
+                    style="--c:var(--c-blue); background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:16px; padding:25px; display:flex; flex-direction:column; position:relative; overflow:hidden; border-top:4px solid var(--c-blue);">
+                    <div style="margin-bottom:15px;">
+                        <span
+                            style="background:rgba(56,189,248,0.15); color:var(--c-blue); padding:4px 10px; border-radius:20px; font-size:0.8rem; border:1px solid rgba(56,189,248,0.3); text-transform:uppercase; letter-spacing:1px;">Advanced
+                            Storage</span>
+                    </div>
+                    <h3 style="color:#fff; font-size:1.5rem; margin:0 0 10px;">Racetrack Memory</h3>
+                    <div style="margin-bottom:15px; color:var(--c-blue); font-weight:600; font-size:1rem;">
+                        <i class="fa-solid fa-hard-drive" style="margin-right:8px;"></i>Topological Protection
+                    </div>
+                    <p style="color:var(--text-muted); font-size:0.95rem; line-height:1.5; flex:1;">
+                        Skyrmions serve as information bits driven along a nanostrip by <strong>ultra-low current
+                            densities</strong>. Their topological protection makes them resistant to thermal
+                        fluctuations and defects, enabling high-density, non-volatile storage.
+                    </p>
+                    <div style="margin-top:10px; font-size:0.8rem; color:rgba(255,255,255,0.4);">Zhang 2023 · Muller
+                        2016</div>
+                </div>
+
+                <!-- 2. Neuromorphic Computing -->
+                <div
+                    style="--c:var(--c-purple); background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:16px; padding:25px; display:flex; flex-direction:column; position:relative; overflow:hidden; border-top:4px solid var(--c-purple);">
+                    <div style="margin-bottom:15px;">
+                        <span
+                            style="background:rgba(167,139,250,0.15); color:var(--c-purple); padding:4px 10px; border-radius:20px; font-size:0.8rem; border:1px solid rgba(167,139,250,0.3); text-transform:uppercase; letter-spacing:1px;">Neuromorphic
+                            Computing</span>
+                    </div>
+                    <h3 style="color:#fff; font-size:1.5rem; margin:0 0 10px;">Artificial Synapses</h3>
+                    <div style="margin-bottom:15px; color:var(--c-purple); font-weight:600; font-size:1rem;">
+                        <i class="fa-solid fa-brain" style="margin-right:8px;"></i>DMI Interaction (Skyrmions)
+                    </div>
+                    <p style="color:var(--text-muted); font-size:0.95rem; line-height:1.5; flex:1;">
+                        Skyrmion nucleation and annihilation in 2D nanodisks emulate artificial synapses for binarized
+                        neural networks. The controllable creation/destruction mimics <strong>synaptic weight
+                            updates</strong>, enabling energy-efficient neuromorphic architectures.
+                    </p>
+                    <div style="margin-top:10px; font-size:0.8rem; color:rgba(255,255,255,0.4);">Che 2025</div>
+                </div>
+
+                <!-- 3. Logic Devices -->
+                <div
+                    style="--c:var(--c-ind); background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:16px; padding:25px; display:flex; flex-direction:column; position:relative; overflow:hidden; border-top:4px solid var(--c-ind);">
+                    <div style="margin-bottom:15px;">
+                        <span
+                            style="background:rgba(239,68,68,0.15); color:var(--c-ind); padding:4px 10px; border-radius:20px; font-size:0.8rem; border:1px solid rgba(239,68,68,0.3); text-transform:uppercase; letter-spacing:1px;">Logic
+                            Devices</span>
+                    </div>
+                    <h3 style="color:#fff; font-size:1.5rem; margin:0 0 10px;">Boolean Spintronic Logic</h3>
+                    <div style="margin-bottom:15px; color:var(--c-ind); font-weight:600; font-size:1rem;">
+                        <i class="fa-solid fa-microchip" style="margin-right:8px;"></i>Beyond Transistors
+                    </div>
+                    <p style="color:var(--text-muted); font-size:0.95rem; line-height:1.5; flex:1;">
+                        Skyrmion-based logic gates exploit skyrmion creation, annihilation, and motion to perform
+                        Boolean operations — potentially replacing transistor-based logic with more <strong>compact,
+                            low-power alternatives</strong>.
+                    </p>
+                    <div style="margin-top:10px; font-size:0.8rem; color:rgba(255,255,255,0.4);">Zhang 2023</div>
+                </div>
+
+                <!-- 4. Ferroelectric Control -->
+                <div
+                    style="--c:var(--c-gold); background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:16px; padding:25px; display:flex; flex-direction:column; position:relative; overflow:hidden; border-top:4px solid var(--c-gold);">
+                    <div style="margin-bottom:15px;">
+                        <span
+                            style="background:rgba(250,204,21,0.15); color:var(--c-gold); padding:4px 10px; border-radius:20px; font-size:0.8rem; border:1px solid rgba(250,204,21,0.3); text-transform:uppercase; letter-spacing:1px;">Quantum
+                            Memory</span>
+                    </div>
+                    <h3 style="color:#fff; font-size:1.5rem; margin:0 0 10px;">Ferroelectric Control</h3>
+                    <div style="margin-bottom:15px; color:var(--c-gold); font-weight:600; font-size:1rem;">
+                        <i class="fa-solid fa-bolt" style="margin-right:8px;"></i>Electrically Writable
+                    </div>
+                    <p style="color:var(--text-muted); font-size:0.95rem; line-height:1.5; flex:1;">
+                        In heterostructures like Fe<sub>3</sub>GeTe<sub>2</sub>/In<sub>2</sub>Se<sub>3</sub>,
+                        ferroelectric polarization reversal can create and annihilate skyrmions or switch their
+                        chirality — enabling <strong>non-volatile topological memory</strong> with virtually no current
+                        flow.
+                    </p>
+                    <div style="margin-top:10px; font-size:0.8rem; color:rgba(255,255,255,0.4);">Huang 2022</div>
+                </div>
+
+                <!-- 5. Room-Temperature Operation -->
+                <div
+                    style="--c:var(--c-green); background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:16px; padding:25px; display:flex; flex-direction:column; position:relative; overflow:hidden; border-top:4px solid var(--c-green);">
+                    <div style="margin-bottom:15px;">
+                        <span
+                            style="background:rgba(74,222,128,0.15); color:var(--c-green); padding:4px 10px; border-radius:20px; font-size:0.8rem; border:1px solid rgba(74,222,128,0.3); text-transform:uppercase; letter-spacing:1px;">Key
+                            Milestone</span>
+                    </div>
+                    <h3 style="color:#fff; font-size:1.5rem; margin:0 0 10px;">Room-Temperature Operation</h3>
+                    <div style="margin-bottom:15px; color:var(--c-green); font-weight:600; font-size:1rem;">
+                        <i class="fa-solid fa-temperature-half" style="margin-right:8px;"></i>Above 300 K — Demonstrated
+                    </div>
+                    <p style="color:var(--text-muted); font-size:0.95rem; line-height:1.5; flex:1;">
+                        The 2024 observation of skyrmions above room temperature in the 2D ferromagnet
+                        Fe<sub>3</sub>GaTe<sub>2</sub> showed they can be moved by low-density currents and exhibit a
+                        measurable <strong>skyrmion Hall effect</strong>. This addresses the long-standing barrier of
+                        cryogenic requirements.
+                    </p>
+                    <div style="margin-top:10px; font-size:0.8rem; color:rgba(255,255,255,0.4);">Shi 2024</div>
+                </div>
+
+                <!-- 6. Optical Detection -->
+                <div
+                    style="--c:var(--c-pink); background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:16px; padding:25px; display:flex; flex-direction:column; position:relative; overflow:hidden; border-top:4px solid var(--c-pink);">
+                    <div style="margin-bottom:15px;">
+                        <span
+                            style="background:rgba(244,114,182,0.15); color:var(--c-pink); padding:4px 10px; border-radius:20px; font-size:0.8rem; border:1px solid rgba(244,114,182,0.3); text-transform:uppercase; letter-spacing:1px;">Optical
+                            Sensing</span>
+                    </div>
+                    <h3 style="color:#fff; font-size:1.5rem; margin:0 0 10px;">Optical Detection</h3>
+                    <div style="margin-bottom:15px; color:var(--c-pink); font-weight:600; font-size:1rem;">
+                        <i class="fa-solid fa-eye" style="margin-right:8px;"></i>Topological Magneto-Optics
+                    </div>
+                    <p style="color:var(--text-muted); font-size:0.95rem; line-height:1.5; flex:1;">
+                        Topological magneto-optical effects (topological RMCD) have been demonstrated in
+                        Fe<sub>3</sub>GeTe<sub>2</sub>, allowing <strong>all-optical detection of skyrmion
+                            states</strong> — important for non-invasive readout in integrated photonic-spintronic
+                        devices.
+                    </p>
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- ══════════════════════════════════════
+             SLIDE: DATOS PRELIMINARES
+             ══════════════════════════════════════ -->
+        <section class="slide" id="data-table">
+            <h2
+                style="font-size: 3rem; margin-bottom: 1.5rem; text-align: center;
+                       background: linear-gradient(90deg, var(--c-cyan), var(--c-purple));
+                       -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; font-weight: 300;">
+                Preliminary Results (Unpublished)
+            </h2>
+
+            <div class="dashboard-card">
+                <div class="table-container">
+                    <table id="dataTable" class="t3-table">
+                        <thead>
+                            <tr>
+                                <th onclick="sortTable(0)">Element</th>
+                                <th onclick="sortTable(1, true)">Config (3d)</th>
+                                <th onclick="sortTable(2, true)">n<sub>val</sub></th>
+                                <th onclick="sortTable(3, true)">Δe</th>
+                                <th onclick="sortTable(4, true)">Mag. Moment<br><span
+                                        style="font-size:0.8em; text-transform:none;">(μ<sub>B</sub>)</span></th>
+                                <th onclick="sortTable(5, true)">Transition Temp.<br><span
+                                        style="font-size:0.8em; text-transform:none;">(°C)</span>
+                                </th>
+                                <th onclick="sortTable(6)">State</th>
+                                <th onclick="sortTable(7, true)">Conductivity<br><span
+                                        style="font-size:0.8em; text-transform:none;">(S/m)</span>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Sc -->
+                            <tr>
+                                <td class="col-element">Sc</td>
+                                <td class="col-config">3d<sup>1</sup></td>
+                                <td>3</td>
+                                <td>−2</td>
+                                <td>
+                                    <div class="bar-container"><span>0.00</span>
+                                        <div class="bar-bg">
+                                            <div class="bar-fill" style="width:0%;background:#94a3b8;"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td style="color:var(--text-muted);font-family:'JetBrains Mono'">-</td>
+                                <td><span class="badge nm">NM</span></td>
+                                <td style="color:#fff;font-family:'JetBrains Mono'">0.37 × 10<sup>5</sup></td>
+                            </tr>
+                            <!-- Ti -->
+                            <tr>
+                                <td class="col-element">Ti</td>
+                                <td class="col-config">3d<sup>2</sup></td>
+                                <td>4</td>
+                                <td>−1</td>
+                                <td>
+                                    <div class="bar-container"><span>3.71</span>
+                                        <div class="bar-bg">
+                                            <div class="bar-fill" style="width:17%;background:var(--c-gold);"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td style="color:#fff;font-family:'JetBrains Mono'">170.66</td>
+                                <td><span class="badge afm"><i class="fa-solid fa-arrows-up-down"></i> AFM</span></td>
+                                <td style="color:#fff;font-family:'JetBrains Mono'">0.90 × 10<sup>5</sup></td>
+                            </tr>
+                            <!-- V -->
+                            <tr style="background:rgba(34,211,238,0.08);">
+                                <td class="col-element">V <i class="fa-solid fa-star"
+                                        style="color:var(--c-gold); font-size:0.75rem; margin-left:4px;"
+                                        title="Top FM Candidate"></i></td>
+                                <td class="col-config">3d<sup>3</sup></td>
+                                <td>5</td>
+                                <td>0</td>
+                                <td>
+                                    <div class="bar-container"><span>8.28</span>
+                                        <div class="bar-bg">
+                                            <div class="bar-fill" style="width:37%;background:var(--c-cyan);"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td style="color:var(--c-cyan);font-weight:bold;font-family:'JetBrains Mono'">51.73</td>
+                                <td><span class="badge fm"><i class="fa-solid fa-arrow-up"></i> FM</span></td>
+                                <td style="color:#fff;font-family:'JetBrains Mono'">0.45 × 10<sup>5</sup></td>
+                            </tr>
+                            <!-- Cr -->
+                            <tr style="background:rgba(34,211,238,0.08);">
+                                <td class="col-element">Cr <i class="fa-solid fa-star"
+                                        style="color:var(--c-gold); font-size:0.75rem; margin-left:4px;"
+                                        title="Top FM Candidate"></i></td>
+                                <td class="col-config">3d<sup>5</sup></td>
+                                <td>6</td>
+                                <td>+1</td>
+                                <td>
+                                    <div class="bar-container"><span style="font-weight:bold;color:white;">17.08</span>
+                                        <div class="bar-bg">
+                                            <div class="bar-fill" style="width:77%;background:var(--c-cyan);"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td style="color:var(--c-cyan);font-weight:bold;font-family:'JetBrains Mono'">23.39</td>
+                                <td><span class="badge fm"><i class="fa-solid fa-arrow-up"></i> FM</span></td>
+                                <td style="color:#fff;font-family:'JetBrains Mono'">0.52 × 10<sup>5</sup></td>
+                            </tr>
+                            <!-- Mn -->
+                            <tr>
+                                <td class="col-element">Mn</td>
+                                <td class="col-config">3d<sup>5</sup></td>
+                                <td>7</td>
+                                <td>+2</td>
+                                <td>
+                                    <div class="bar-container"><span style="font-weight:bold;color:white;">21.98</span>
+                                        <div class="bar-bg">
+                                            <div class="bar-fill" style="width:100%;background:var(--c-gold);"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td style="color:#fff;font-family:'JetBrains Mono'">234.78</td>
+                                <td><span class="badge afm"><i class="fa-solid fa-arrows-up-down"></i> AFM</span></td>
+                                <td style="color:#fff;font-family:'JetBrains Mono'">0.29 × 10<sup>5</sup></td>
+                            </tr>
+                            <!-- Fe -->
+                            <tr>
+                                <td class="col-element">Fe</td>
+                                <td class="col-config">3d<sup>6</sup></td>
+                                <td>8</td>
+                                <td>+3</td>
+                                <td>
+                                    <div class="bar-container"><span>17.94</span>
+                                        <div class="bar-bg">
+                                            <div class="bar-fill" style="width:81%;background:var(--c-gold);"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td style="color:#fff;font-family:'JetBrains Mono'">72.08</td>
+                                <td><span class="badge afm"><i class="fa-solid fa-arrows-up-down"></i> AFM</span></td>
+                                <td style="color:#fff;font-family:'JetBrains Mono'">0.44 × 10<sup>5</sup></td>
+                            </tr>
+                            <!-- Co -->
+                            <tr>
+                                <td class="col-element">Co</td>
+                                <td class="col-config">3d<sup>7</sup></td>
+                                <td>9</td>
+                                <td>+4</td>
+                                <td>
+                                    <div class="bar-container"><span>10.23</span>
+                                        <div class="bar-bg">
+                                            <div class="bar-fill" style="width:46%;background:var(--c-gold);"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td style="color:#fff;font-family:'JetBrains Mono'">110.71</td>
+                                <td><span class="badge afm"><i class="fa-solid fa-arrows-up-down"></i> AFM</span></td>
+                                <td style="color:#fff;font-family:'JetBrains Mono'">0.38 × 10<sup>5</sup></td>
+                            </tr>
+                            <!-- Ni -->
+                            <tr>
+                                <td class="col-element">Ni</td>
+                                <td class="col-config">3d<sup>8</sup></td>
+                                <td>10</td>
+                                <td>+5</td>
+                                <td>
+                                    <div class="bar-container"><span>6.35</span>
+                                        <div class="bar-bg">
+                                            <div class="bar-fill" style="width:29%;background:var(--c-gold);"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td style="color:#fff;font-family:'JetBrains Mono'">94.93</td>
+                                <td><span class="badge afm"><i class="fa-solid fa-arrows-up-down"></i> AFM</span></td>
+                                <td style="color:#fff;font-family:'JetBrains Mono'">0.89 × 10<sup>5</sup></td>
+                            </tr>
+                            <!-- Cu -->
+                            <tr>
+                                <td class="col-element">Cu</td>
+                                <td class="col-config">3d<sup>10</sup></td>
+                                <td>11</td>
+                                <td>+6</td>
+                                <td>
+                                    <div class="bar-container"><span>0.00</span>
+                                        <div class="bar-bg">
+                                            <div class="bar-fill" style="width:0%;background:#94a3b8;"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td style="color:var(--text-muted);font-family:'JetBrains Mono'">-</td>
+                                <td><span class="badge nm">NM</span></td>
+                                <td style="color:#fff;font-family:'JetBrains Mono'">0.38 × 10<sup>5</sup></td>
+                            </tr>
+                            <!-- Zn -->
+                            <tr>
+                                <td class="col-element">Zn</td>
+                                <td class="col-config">3d<sup>10</sup></td>
+                                <td>12</td>
+                                <td>+7</td>
+                                <td>
+                                    <div class="bar-container"><span>0.00</span>
+                                        <div class="bar-bg">
+                                            <div class="bar-fill" style="width:0%;background:#94a3b8;"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td style="color:var(--text-muted);font-family:'JetBrains Mono'">-</td>
+                                <td><span class="badge nm">NM</span></td>
+                                <td style="color:#fff;font-family:'JetBrains Mono'">0.85 × 10<sup>5</sup></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ══════════════════════════════════════
+             SLIDE: CONCLUSIONS & NEXT STEPS
+             ══════════════════════════════════════ -->
+        <section class="slide">
+            <div
+                style="width:100%; max-width:1300px; margin:0 auto; display:flex; flex-direction:column; gap:24px; height:88vh; justify-content:center;">
+
+                <!-- Header -->
+                <div style="text-align:center;">
+                    <p
+                        style="font-size:0.8rem; text-transform:uppercase; letter-spacing:3px; color:var(--text-muted); margin:0 0 8px;">
+                        Summary</p>
+                    <h2
+                        style="font-family:'Inter',sans-serif; font-weight:800; font-size:2.8rem; margin:0; letter-spacing:-1px;
+                               background:linear-gradient(90deg,#fff 40%,var(--c-cyan));
+                               -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;">
+                        Conclusions &amp; Next Steps
+                    </h2>
+                </div>
+
+                <!-- Two-column layout -->
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; flex:1; min-height:0;">
+
+                    <!-- LEFT: What we've established -->
+                    <div
+                        style="background:rgba(30,41,59,0.4); border:1px solid rgba(255,255,255,0.08); border-radius:18px; border-top:4px solid var(--c-cyan); padding:28px 30px; display:flex; flex-direction:column; gap:18px;">
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <div
+                                style="width:36px; height:36px; border-radius:50%; border:1.5px solid var(--c-cyan); background:rgba(34,211,238,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                <i class="fa-solid fa-check" style="color:var(--c-cyan); font-size:0.85rem;"></i>
+                            </div>
+                            <h3 style="font-size:1.15rem; color:#fff; margin:0;">What we've established</h3>
+                        </div>
+
+                        <div style="display:flex; flex-direction:column; gap:0; flex:1; justify-content:space-evenly;">
+
+                            <div style="display:flex; gap:12px; align-items:flex-start;">
+                                <div
+                                    style="width:6px; height:6px; border-radius:50%; background:var(--c-cyan); flex-shrink:0; margin-top:8px;">
+                                </div>
+                                <p style="margin:0; font-size:1.08rem; color:var(--text-muted); line-height:1.5;">
+                                    The solid solution <strong style="color:#fff;">(Nb₀.₈Ti₀.₂)₄C₃Tₓ</strong> is
+                                    experimentally synthesized and DFT confirms an <strong style="color:#fff;">AFM
+                                        ground state</strong> — a striking emergence of magnetism from non-magnetic
+                                    elements. <em style="color:rgba(148,163,184,0.7);">[Published, Chem. Mater.
+                                        2023]</em>
+                                </p>
+                            </div>
+
+                            <div style="display:flex; gap:12px; align-items:flex-start;">
+                                <div
+                                    style="width:6px; height:6px; border-radius:50%; background:var(--c-cyan); flex-shrink:0; margin-top:8px;">
+                                </div>
+                                <p style="margin:0; font-size:1.08rem; color:var(--text-muted); line-height:1.5;">
+                                    <strong style="color:#fff;">Surface terminations</strong> (–F, –O, –OH) critically
+                                    modulate magnetic ordering: oxidic terminations can quench magnetism; halide
+                                    terminations preserve it.
+                                </p>
+                            </div>
+
+                            <div style="display:flex; gap:12px; align-items:flex-start;">
+                                <div
+                                    style="width:6px; height:6px; border-radius:50%; background:var(--c-cyan); flex-shrink:0; margin-top:8px;">
+                                </div>
+                                <p style="margin:0; font-size:1.08rem; color:var(--text-muted); line-height:1.5;">
+                                    Preliminary calculations across the <strong style="color:#fff;">3d transition metal
+                                        series</strong> (Sc → Ni) reveal diverse phases — FM, AFM, and NM — with widely
+                                    varying moments and transition temperatures.
+                                </p>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- RIGHT: Next steps -->
+                    <div
+                        style="background:rgba(30,41,59,0.4); border:1px solid rgba(255,255,255,0.08); border-radius:18px; border-top:4px solid var(--c-purple); padding:28px 30px; display:flex; flex-direction:column; gap:18px;">
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <div
+                                style="width:36px; height:36px; border-radius:50%; border:1.5px solid var(--c-purple); background:rgba(167,139,250,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                <i class="fa-solid fa-arrow-right"
+                                    style="color:var(--c-purple); font-size:0.85rem;"></i>
+                            </div>
+                            <h3 style="font-size:1.15rem; color:#fff; margin:0;">Next steps</h3>
+                        </div>
+
+                        <div style="display:flex; flex-direction:column; gap:0; flex:1; justify-content:space-evenly;">
+
+                            <div style="display:flex; gap:12px; align-items:flex-start;">
+                                <div
+                                    style="width:6px; height:6px; border-radius:50%; background:var(--c-purple); flex-shrink:0; margin-top:8px;">
+                                </div>
+                                <p style="margin:0; font-size:1.08rem; color:var(--text-muted); line-height:1.5;">
+                                    Complete the <strong style="color:#fff;">DMI and MAE calculations</strong> for all
+                                    3d candidates to identify which compositions satisfy the conditions for skyrmion
+                                    stabilization.
+                                </p>
+                            </div>
+
+                            <div style="display:flex; gap:12px; align-items:flex-start;">
+                                <div
+                                    style="width:6px; height:6px; border-radius:50%; background:var(--c-purple); flex-shrink:0; margin-top:8px;">
+                                </div>
+                                <p style="margin:0; font-size:1.08rem; color:var(--text-muted); line-height:1.5;">
+                                    Explore <strong style="color:#fff;">concentration dependence</strong> beyond x = 0.2
+                                    to map the full compositional phase diagram for each substituted family.
+                                </p>
+                            </div>
+
+                            <div style="display:flex; gap:12px; align-items:flex-start;">
+                                <div
+                                    style="width:6px; height:6px; border-radius:50%; background:var(--c-purple); flex-shrink:0; margin-top:8px;">
+                                </div>
+                                <p style="margin:0; font-size:1.08rem; color:var(--text-muted); line-height:1.5;">
+                                    Extend the <strong style="color:#fff;">DFT+U treatment</strong> systematically
+                                    across the full 3d series, refining U<sub>eff</sub> for strongly-correlated cases
+                                    (Cr, Mn) to improve the accuracy of predicted moments and T<sub>N</sub>.
+                                </p>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Bottom tagline -->
+                <div style="text-align:center; flex-shrink:0;">
+                    <p
+                        style="font-family:'Playfair Display',serif; font-style:italic; font-size:1.15rem; color:var(--text-muted); margin:0;">
+                        These preliminary results suggest a rich — and largely uncharted — compositional space for
+                        <strong style="color:#fff; font-style:normal;">emergent magnetism at the 2D limit.</strong>
+                    </p>
+                </div>
+
+            </div>
+        </section>
+
+    </div><!-- /slides-container -->
+
+    <!-- ════════════════════════════════════
+         WINDING NUMBER MODAL
+         ════════════════════════════════════ -->
+    <div id="winding-modal" class="modal-overlay" onclick="if(event.target===this)this.classList.remove('show')">
+        <div class="modal-panel">
+            <button class="modal-close"
+                onclick="document.getElementById('winding-modal').classList.remove('show')">&times;</button>
+
+            <!-- Header -->
+            <div style="display:flex; align-items:center; gap:14px; margin-bottom:24px;">
+                <div
+                    style="width:48px; height:48px; border-radius:50%; border:2px solid var(--c-cyan); background:rgba(34,211,238,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <i class="fa-solid fa-shield-halved" style="color:var(--c-cyan); font-size:1.2rem;"></i>
+                </div>
+                <div>
+                    <p
+                        style="font-size:0.72rem; text-transform:uppercase; letter-spacing:3px; color:var(--c-cyan); margin:0 0 4px;">
+                        Topological Protection</p>
+                    <h2 style="font-size:1.7rem; font-weight:800; color:#fff; margin:0; letter-spacing:-0.5px;">What is
+                        the Winding Number Q?</h2>
+                </div>
+            </div>
+
+            <div
+                style="height:1px; background:linear-gradient(90deg,rgba(34,211,238,0.4),transparent); margin-bottom:24px;">
+            </div>
+
+            <!-- Main explanation -->
+            <p style="font-size:1.05rem; color:var(--text-muted); line-height:1.65; margin:0 0 20px;">
+                Imagine sweeping a tiny compass over the material's surface. At every point, the local magnetization
+                points in some direction. The <strong style="color:#fff;">winding number Q</strong> counts <strong
+                    style="color:#fff;">how many times all those directions collectively wrap around a full
+                    sphere</strong> as you scan the entire surface.
+            </p>
+
+            <!-- Q value cards -->
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:20px;">
+                <div
+                    style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:14px; text-align:center;">
+                    <div
+                        style="font-family:'JetBrains Mono',monospace; font-size:1.4rem; color:var(--text-muted); font-weight:700;">
+                        Q = 0</div>
+                    <div style="font-size:0.82rem; color:var(--text-muted); margin-top:6px; line-height:1.4;">Spins are
+                        nearly uniform. No wrapping. <strong style="color:#fff;">No skyrmion.</strong></div>
+                </div>
+                <div
+                    style="background:rgba(34,211,238,0.06); border:1px solid rgba(34,211,238,0.25); border-radius:12px; padding:14px; text-align:center;">
+                    <div
+                        style="font-family:'JetBrains Mono',monospace; font-size:1.4rem; color:var(--c-cyan); font-weight:700;">
+                        Q = +1</div>
+                    <div style="font-size:0.82rem; color:var(--text-muted); margin-top:6px; line-height:1.4;">Spins wrap
+                        the sphere once. <strong style="color:#fff;">One skyrmion.</strong></div>
+                </div>
+                <div
+                    style="background:rgba(167,139,250,0.06); border:1px solid rgba(167,139,250,0.25); border-radius:12px; padding:14px; text-align:center;">
+                    <div
+                        style="font-family:'JetBrains Mono',monospace; font-size:1.4rem; color:var(--c-purple); font-weight:700;">
+                        Q = &minus;1</div>
+                    <div style="font-size:0.82rem; color:var(--text-muted); margin-top:6px; line-height:1.4;">Same, but
+                        opposite handedness. <strong style="color:#fff;">Anti-skyrmion.</strong></div>
+                </div>
+            </div>
+
+            <!-- Why protected -->
+            <div
+                style="background:rgba(34,211,238,0.05); border-left:3px solid var(--c-cyan); border-radius:0 10px 10px 0; padding:14px 18px; margin-bottom:16px;">
+                <p style="font-size:0.95rem; color:var(--text-muted); line-height:1.6; margin:0;">
+                    <strong style="color:var(--c-cyan);">Why is it protected?</strong> You cannot smoothly deform Q = 1
+                    into Q = 0 without tearing the spin texture. It's like trying to unknot a closed loop without
+                    cutting it. The energy barrier is enormous — the skyrmion simply cannot decay spontaneously.
+                </p>
+            </div>
+
+            <!-- DFT pipeline -->
+            <div
+                style="background:rgba(250,204,21,0.04); border-left:3px solid var(--c-gold); border-radius:0 10px 10px 0; padding:14px 18px;">
+                <p style="font-size:0.95rem; color:var(--text-muted); line-height:1.6; margin:0 0 10px;">
+                    <strong style="color:var(--c-gold);">Can Q be obtained from DFT?</strong> Not directly. DFT provides
+                    the microscopic spin Hamiltonian parameters. The pipeline is:
+                </p>
+                <div
+                    style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-family:'JetBrains Mono',monospace; font-size:0.82rem;">
+                    <span
+                        style="background:rgba(34,211,238,0.1); border:1px solid rgba(34,211,238,0.3); padding:4px 10px; border-radius:20px; color:var(--c-cyan);">DFT
+                        &rarr; J, D, K</span>
+                    <span style="color:var(--text-muted);">&#8594;</span>
+                    <span
+                        style="background:rgba(167,139,250,0.1); border:1px solid rgba(167,139,250,0.3); padding:4px 10px; border-radius:20px; color:var(--c-purple);">Spin
+                        dynamics / MC</span>
+                    <span style="color:var(--text-muted);">&#8594;</span>
+                    <span
+                        style="background:rgba(74,222,128,0.1); border:1px solid rgba(74,222,128,0.3); padding:4px 10px; border-radius:20px; color:var(--c-green);">Texture
+                        <strong>n</strong>(r)</span>
+                    <span style="color:var(--text-muted);">&#8594;</span>
+                    <span
+                        style="background:rgba(250,204,21,0.1); border:1px solid rgba(250,204,21,0.3); padding:4px 10px; border-radius:20px; color:var(--c-gold);">Integrate
+                        &rarr; Q</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+
+    <script>
+        const slides = document.querySelectorAll('.slide');
+        const indicator = document.getElementById('slide-indicator');
+        const currentEl = document.getElementById('current-slide');
+        const totalEl = document.getElementById('total-slides');
+        let idx = 0;
+
+        totalEl.textContent = slides.length;
+
+        function updateSlide(newIdx) {
+            if (newIdx < 0) newIdx = 0;
+            if (newIdx >= slides.length) newIdx = slides.length - 1;
+            idx = newIdx;
+            slides.forEach((s, i) => {
+                s.classList.remove('active');
+                if (i === idx) s.classList.add('active');
+            });
+            currentEl.textContent = idx + 1;
+            if (idx === 0) indicator.classList.add('hidden');
+            else indicator.classList.remove('hidden');
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', e => {
+            if (e.key === 'F2') {
+                e.preventDefault();
+                if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+                else document.exitFullscreen();
+            }
+            if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') updateSlide(idx + 1);
+            if (e.key === 'ArrowLeft') updateSlide(idx - 1);
+        });
+
+        // Click navigation
+        document.addEventListener('click', e => {
+            if (e.target.closest('a') || e.target.closest('button') || e.target.closest('th')) return;
+            if (e.clientX > window.innerWidth / 2) updateSlide(idx + 1);
+            else updateSlide(idx - 1);
+        });
+
+        // SORT TABLE FUNCTION
+        function sortTable(n, isNumber = false) {
+            var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+            table = document.getElementById("dataTable");
+            switching = true;
+            dir = "asc";
+            while (switching) {
+                switching = false;
+                rows = table.rows;
+                for (i = 1; i < (rows.length - 1); i++) {
+                    shouldSwitch = false;
+                    x = rows[i].getElementsByTagName("TD")[n];
+                    y = rows[i + 1].getElementsByTagName("TD")[n];
+
+                    let xVal = x.textContent || x.innerText;
+                    let yVal = y.textContent || y.innerText;
+                    xVal = xVal.trim(); yVal = yVal.trim();
+
+                    if (isNumber) {
+                        let xNum = parseFloat(xVal.match(/-?\d+(\.\d+)?/));
+                        let yNum = parseFloat(yVal.match(/-?\d+(\.\d+)?/));
+                        if (isNaN(xNum)) xNum = -9999;
+                        if (isNaN(yNum)) yNum = -9999;
+                        xVal = xNum; yVal = yNum;
+                    } else {
+                        xVal = xVal.toLowerCase();
+                        yVal = yVal.toLowerCase();
+                    }
+
+                    if (dir == "asc") {
+                        if (xVal > yVal) { shouldSwitch = true; break; }
+                    } else if (dir == "desc") {
+                        if (xVal < yVal) { shouldSwitch = true; break; }
+                    }
+                }
+                if (shouldSwitch) {
+                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                    switching = true;
+                    switchcount++;
+                } else {
+                    if (switchcount == 0 && dir == "asc") {
+                        dir = "desc";
+                        switching = true;
+                    }
+                }
+            }
+        }
+
+        updateSlide(0);
+    </script>
+
+    <!-- ── MODAL: Topological Quantum Memory ── -->
+    <div id="memory-modal" class="modal-overlay" onclick="if(event.target===this)this.classList.remove('show')">
+        <div class="modal-panel">
+            <button class="modal-close"
+                onclick="document.getElementById('memory-modal').classList.remove('show')">&times;</button>
+            <div style="display:flex; align-items:center; gap:14px; margin-bottom:24px;">
+                <div
+                    style="width:48px; height:48px; border-radius:50%; border:2px solid var(--c-purple); background:rgba(167,139,250,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <i class="fa-solid fa-memory" style="color:var(--c-purple); font-size:1.2rem;"></i>
+                </div>
+                <div>
+                    <p
+                        style="font-size:0.72rem; text-transform:uppercase; letter-spacing:3px; color:var(--c-purple); margin:0 0 4px;">
+                        Bridge 02</p>
+                    <h2 style="font-size:1.7rem; font-weight:800; color:#fff; margin:0; letter-spacing:-0.5px;">
+                        Topological Quantum Memory</h2>
+                </div>
+            </div>
+            <div
+                style="height:1px; background:linear-gradient(90deg,rgba(167,139,250,0.4),transparent); margin-bottom:24px;">
+            </div>
+            <p style="font-size:1.05rem; color:var(--text-muted); line-height:1.65; margin:0 0 18px;">
+                A skyrmion's topological charge Q acts as a bit of information: its presence or absence along a magnetic
+                track encodes binary data. Because Q cannot change without enormous energy, <strong
+                    style="color:#fff;">the bit is immune to thermal noise</strong> — a natural spintronic memory.
+            </p>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:18px;">
+                <div
+                    style="background:rgba(167,139,250,0.06); border:1px solid rgba(167,139,250,0.2); border-radius:12px; padding:14px;">
+                    <div
+                        style="font-size:0.78rem; color:var(--c-purple); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">
+                        Racetrack Memory</div>
+                    <p style="font-size:0.88rem; color:var(--text-muted); line-height:1.5; margin:0;">A current drives
+                        skyrmions along a nanowire like beads on a track. Each skyrmion = one bit. Read/write heads
+                        detect position.</p>
+                </div>
+                <div
+                    style="background:rgba(167,139,250,0.06); border:1px solid rgba(167,139,250,0.2); border-radius:12px; padding:14px;">
+                    <div
+                        style="font-size:0.78rem; color:var(--c-purple); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">
+                        SOT-MRAM</div>
+                    <p style="font-size:0.88rem; color:var(--text-muted); line-height:1.5; margin:0;">Spin-orbit torque
+                        switches the magnetic state without a perpendicular current, enabling faster and more efficient
+                        write operations.</p>
+                </div>
+            </div>
+            <div
+                style="background:rgba(167,139,250,0.05); border-left:3px solid var(--c-purple); border-radius:0 10px 10px 0; padding:14px 18px;">
+                <p style="font-size:0.95rem; color:var(--text-muted); line-height:1.6; margin:0;">
+                    <strong style="color:var(--c-purple);">QMB connection:</strong> Topological quantum error-correcting
+                    codes (e.g. the toric code) protect <em>quantum</em> bits using the same logic — logical qubits
+                    encoded in global topological degrees of freedom are immune to local errors.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── MODAL: Quantum Many-Body Hamiltonians ── -->
+    <div id="hamiltonian-modal" class="modal-overlay" onclick="if(event.target===this)this.classList.remove('show')">
+        <div class="modal-panel">
+            <button class="modal-close"
+                onclick="document.getElementById('hamiltonian-modal').classList.remove('show')">&times;</button>
+            <div style="display:flex; align-items:center; gap:14px; margin-bottom:24px;">
+                <div
+                    style="width:48px; height:48px; border-radius:50%; border:2px solid var(--c-gold); background:rgba(250,204,21,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <i class="fa-solid fa-atom" style="color:var(--c-gold); font-size:1.2rem;"></i>
+                </div>
+                <div>
+                    <p
+                        style="font-size:0.72rem; text-transform:uppercase; letter-spacing:3px; color:var(--c-gold); margin:0 0 4px;">
+                        Bridge 03</p>
+                    <h2 style="font-size:1.7rem; font-weight:800; color:#fff; margin:0; letter-spacing:-0.5px;">Quantum
+                        Many-Body Hamiltonians</h2>
+                </div>
+            </div>
+            <div
+                style="height:1px; background:linear-gradient(90deg,rgba(250,204,21,0.4),transparent); margin-bottom:24px;">
+            </div>
+            <p style="font-size:1.05rem; color:var(--text-muted); line-height:1.65; margin:0 0 18px;">
+                A Hamiltonian is the energy operator of a system. When it describes many interacting quantum particles —
+                spins, electrons, atoms — it becomes a <strong style="color:#fff;">quantum many-body
+                    Hamiltonian</strong>, and solving it exactly is one of physics' hardest problems.
+            </p>
+            <div
+                style="background:rgba(250,204,21,0.05); border:1px solid rgba(250,204,21,0.15); border-radius:12px; padding:16px 18px; margin-bottom:16px; font-size:1rem; color:var(--text-muted); line-height:1.5;">
+                My spin Hamiltonian: &nbsp;$\mathcal{H} = -\sum_{ij} J_{ij}\,\mathbf{S}_i\cdot\mathbf{S}_j \;+\;
+                \sum_{ij}\mathbf{D}_{ij}\cdot(\mathbf{S}_i\times\mathbf{S}_j) \;+\; K\sum_i S_{iz}^2$
+            </div>
+            <div
+                style="background:rgba(250,204,21,0.04); border-left:3px solid var(--c-gold); border-radius:0 10px 10px 0; padding:14px 18px; margin-bottom:14px;">
+                <p style="font-size:0.95rem; color:var(--text-muted); line-height:1.6; margin:0;">
+                    <strong style="color:var(--c-gold);">The challenge:</strong> For N spins, the Hilbert space has
+                    2<sup>N</sup> states. For 100 spins: that's 10<sup>30</sup> states — impossible to store on any
+                    computer. This is why mean-field (DFT) and tensor-network methods exist.
+                </p>
+            </div>
+            <div
+                style="background:rgba(250,204,21,0.04); border-left:3px solid var(--c-gold); border-radius:0 10px 10px 0; padding:14px 18px;">
+                <p style="font-size:0.95rem; color:var(--text-muted); line-height:1.6; margin:0;">
+                    <strong style="color:var(--c-gold);">DFT provides J, D, K.</strong> These parameters fully define
+                    the Hamiltonian. Once written down, more exact many-body solvers can be applied to capture
+                    correlations and entanglement that DFT misses.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── MODAL: Computational Methods ── -->
+    <div id="methods-modal" class="modal-overlay" onclick="if(event.target===this)this.classList.remove('show')">
+        <div class="modal-panel">
+            <button class="modal-close"
+                onclick="document.getElementById('methods-modal').classList.remove('show')">&times;</button>
+            <div style="display:flex; align-items:center; gap:14px; margin-bottom:24px;">
+                <div
+                    style="width:48px; height:48px; border-radius:50%; border:2px solid var(--c-green); background:rgba(74,222,128,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <i class="fa-solid fa-calculator" style="color:var(--c-green); font-size:1.2rem;"></i>
+                </div>
+                <div>
+                    <p
+                        style="font-size:0.72rem; text-transform:uppercase; letter-spacing:3px; color:var(--c-green); margin:0 0 4px;">
+                        Bridge 04</p>
+                    <h2 style="font-size:1.7rem; font-weight:800; color:#fff; margin:0; letter-spacing:-0.5px;">
+                        Computational Methods</h2>
+                </div>
+            </div>
+            <div
+                style="height:1px; background:linear-gradient(90deg,rgba(74,222,128,0.4),transparent); margin-bottom:24px;">
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:18px;">
+                <div
+                    style="background:rgba(34,211,238,0.05); border:1px solid rgba(34,211,238,0.2); border-radius:12px; padding:16px;">
+                    <div
+                        style="font-size:0.8rem; color:var(--c-cyan); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">
+                        DFT (my approach)</div>
+                    <p style="font-size:0.88rem; color:var(--text-muted); line-height:1.5; margin:0;">Maps the
+                        interacting N-electron problem onto N <em>non-interacting</em> electrons in an effective
+                        potential. Mean-field by nature — fast and scalable, but misses strong quantum correlations.</p>
+                </div>
+                <div
+                    style="background:rgba(167,139,250,0.05); border:1px solid rgba(167,139,250,0.2); border-radius:12px; padding:16px;">
+                    <div
+                        style="font-size:0.8rem; color:var(--c-purple); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">
+                        Tensor Networks / DMRG</div>
+                    <p style="font-size:0.88rem; color:var(--text-muted); line-height:1.5; margin:0;">Represent the
+                        many-body wave function as a network of tensors. Capture entanglement exactly. Especially
+                        powerful in low-dimensional systems — like 2D MXenes.</p>
+                </div>
+            </div>
+            <div
+                style="background:rgba(74,222,128,0.04); border-left:3px solid var(--c-green); border-radius:0 10px 10px 0; padding:14px 18px;">
+                <p style="font-size:0.95rem; color:var(--text-muted); line-height:1.6; margin:0;">
+                    <strong style="color:var(--c-green);">Where they meet:</strong> Both methods operate on large
+                    matrices in Hilbert space. DFT provides the physically motivated starting Hamiltonian;
+                    tensor-network methods can then solve it beyond mean-field, validating predictions for
+                    T<sub>N</sub>, T<sub>C</sub>, and magnetic phase boundaries.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── MODAL: DMI ── -->
+    <div id="dmi-modal" class="modal-overlay" onclick="if(event.target===this)this.classList.remove('show')">
+        <div class="modal-panel">
+            <button class="modal-close"
+                onclick="document.getElementById('dmi-modal').classList.remove('show')">&times;</button>
+
+            <div style="display:flex; align-items:center; gap:14px; margin-bottom:24px;">
+                <div
+                    style="width:48px; height:48px; border-radius:50%; border:2px solid var(--c-purple); background:rgba(167,139,250,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <i class="fa-solid fa-rotate" style="color:var(--c-purple); font-size:1.2rem;"></i>
+                </div>
+                <div>
+                    <p
+                        style="font-size:0.72rem; text-transform:uppercase; letter-spacing:3px; color:var(--c-purple); margin:0 0 4px;">
+                        Physical Properties</p>
+                    <h2 style="font-size:1.7rem; font-weight:800; color:#fff; margin:0; letter-spacing:-0.5px;">
+                        Dzyaloshinskii–Moriya Interaction</h2>
+                </div>
+            </div>
+
+            <div
+                style="height:1px; background:linear-gradient(90deg,rgba(167,139,250,0.4),transparent); margin-bottom:22px;">
+            </div>
+
+            <p style="font-size:1rem; color:var(--text-muted); line-height:1.6; margin:0 0 20px;">
+                The DMI is an antisymmetric exchange coupling that favors <strong style="color:#fff;">non-collinear spin
+                    arrangements</strong> — and is the key interaction behind skyrmion formation. Three ingredients must
+                coexist for it to be non-zero:
+            </p>
+
+            <!-- Three ingredient cards -->
+            <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:20px;">
+
+                <!-- 1: Magnetism -->
+                <div
+                    style="display:flex; align-items:flex-start; gap:14px; background:rgba(34,211,238,0.05); border:1px solid rgba(34,211,238,0.2); border-radius:12px; padding:14px 16px;">
+                    <div
+                        style="width:28px; height:28px; border-radius:50%; background:rgba(34,211,238,0.15); border:1.5px solid var(--c-cyan); display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px;">
+                        <i class="fa-solid fa-check" style="color:var(--c-cyan); font-size:0.75rem;"></i>
+                    </div>
+                    <div>
+                        <div
+                            style="font-size:0.8rem; color:var(--c-cyan); text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">
+                            Magnetic ordering <span
+                                style="margin-left:6px; background:rgba(34,211,238,0.15); border:1px solid rgba(34,211,238,0.3); padding:1px 7px; border-radius:20px; font-size:0.7rem;">Confirmed</span>
+                        </div>
+                        <p style="font-size:0.92rem; color:var(--text-muted); margin:0; line-height:1.5;">
+                            (Nb₀.₈Ti₀.₂)₄C₃Tₓ exhibits a clear <strong style="color:#fff;">AFM ground state</strong> —
+                            magnetic moments reside on the <strong style="color:#fff;">Ti sites</strong>, providing the
+                            ordered spin texture that DMI can act upon.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 2: Broken inversion -->
+                <div
+                    style="display:flex; align-items:flex-start; gap:14px; background:rgba(34,211,238,0.05); border:1px solid rgba(34,211,238,0.2); border-radius:12px; padding:14px 16px;">
+                    <div
+                        style="width:28px; height:28px; border-radius:50%; background:rgba(34,211,238,0.15); border:1.5px solid var(--c-cyan); display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px;">
+                        <i class="fa-solid fa-check" style="color:var(--c-cyan); font-size:0.75rem;"></i>
+                    </div>
+                    <div>
+                        <div
+                            style="font-size:0.8rem; color:var(--c-cyan); text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">
+                            Broken inversion symmetry <span
+                                style="margin-left:6px; background:rgba(34,211,238,0.15); border:1px solid rgba(34,211,238,0.3); padding:1px 7px; border-radius:20px; font-size:0.7rem;">Confirmed</span>
+                        </div>
+                        <p style="font-size:0.92rem; color:var(--text-muted); margin:0; line-height:1.5;">All <strong
+                                style="color:#fff;">Ti atoms segregate to the outermost layer</strong> of the MXene
+                            stack. This places them in a structurally asymmetric environment: C atoms on one side,
+                            surface terminations (–F, –O, –OH) on the other. The two faces are inequivalent — local
+                            inversion symmetry around each Ti site is intrinsically broken, yielding a non-cancelling
+                            D<sub>ij</sub>.</p>
+                    </div>
+                </div>
+
+                <!-- 3: SOC -->
+                <div
+                    style="display:flex; align-items:flex-start; gap:14px; background:rgba(250,204,21,0.05); border:1px solid rgba(250,204,21,0.2); border-radius:12px; padding:14px 16px;">
+                    <div
+                        style="width:28px; height:28px; border-radius:50%; background:rgba(250,204,21,0.12); border:1.5px solid var(--c-gold); display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px;">
+                        <i class="fa-solid fa-flask" style="color:var(--c-gold); font-size:0.75rem;"></i>
+                    </div>
+                    <div>
+                        <div
+                            style="font-size:0.8rem; color:var(--c-gold); text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">
+                            Spin-orbit coupling (SOC) <span
+                                style="margin-left:6px; background:rgba(250,204,21,0.12); border:1px solid rgba(250,204,21,0.3); padding:1px 7px; border-radius:20px; font-size:0.7rem;">In
+                                progress</span></div>
+                        <p style="font-size:0.92rem; color:var(--text-muted); margin:0; line-height:1.5;">Nb (4d)
+                            contributes the spin-orbit entanglement that makes D<sub>ij</sub> non-zero. SOC-enabled
+                            calculations are currently running; the resulting wave functions will be fed into <strong
+                                style="color:#fff;">TB2J</strong> to extract the full D<sub>ij</sub> tensor and quantify
+                            the DMI strength across different terminations.</p>
+                    </div>
+                </div>
+
+            </div>
+
+            <div
+                style="background:rgba(167,139,250,0.05); border-left:3px solid var(--c-purple); border-radius:0 10px 10px 0; padding:12px 16px;">
+                <p style="font-size:0.88rem; color:var(--text-muted); line-height:1.5; margin:0;">
+                    <strong style="color:var(--c-purple);">Bottom line:</strong> Two of the three ingredients are
+                    structurally guaranteed in this system. The magnitude of the SOC contribution — and whether it is
+                    sufficient to stabilize a skyrmion phase — is the open question this work addresses.
+                </p>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ── MODAL: Stoner Criterion ── -->
+    <div id="stoner-modal" class="modal-overlay" onclick="if(event.target===this)this.classList.remove('show')">
+        <div class="modal-panel">
+            <button class="modal-close"
+                onclick="document.getElementById('stoner-modal').classList.remove('show')">&times;</button>
+
+            <div style="display:flex; align-items:center; gap:14px; margin-bottom:24px;">
+                <div
+                    style="width:48px; height:48px; border-radius:50%; border:2px solid var(--c-ind); background:rgba(239,68,68,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <i class="fa-solid fa-magnet" style="color:var(--c-ind); font-size:1.2rem;"></i>
+                </div>
+                <div>
+                    <p
+                        style="font-size:0.72rem; text-transform:uppercase; letter-spacing:3px; color:var(--c-ind); margin:0 0 4px;">
+                        Physical Properties</p>
+                    <h2 style="font-size:1.7rem; font-weight:800; color:#fff; margin:0; letter-spacing:-0.5px;">Why does
+                        the Stoner Criterion matter?</h2>
+                </div>
+            </div>
+
+            <div
+                style="height:1px; background:linear-gradient(90deg,rgba(239,68,68,0.4),transparent); margin-bottom:22px;">
+            </div>
+
+            <p style="font-size:1rem; color:var(--text-muted); line-height:1.65; margin:0 0 20px;">
+                The Stoner criterion is the simplest possible answer to the question: <strong style="color:#fff;">"will
+                    this material become magnetic?"</strong> — and it can be answered directly from the band structure,
+                before running any spin-polarized calculation.
+            </p>
+
+            <!-- Two-term breakdown -->
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:18px;">
+                <div
+                    style="background:rgba(239,68,68,0.06); border:1px solid rgba(239,68,68,0.2); border-radius:12px; padding:14px 16px;">
+                    <div
+                        style="font-family:'JetBrains Mono',monospace; font-size:1.2rem; color:var(--c-ind); font-weight:700; margin-bottom:8px;">
+                        I</div>
+                    <p style="font-size:0.88rem; color:var(--text-muted); line-height:1.5; margin:0;">The <strong
+                            style="color:#fff;">Stoner exchange parameter</strong>: measures how strongly electrons
+                        prefer to avoid each other when they have the same spin. It's a property of the element — large
+                        for Fe, Co, Ni.</p>
+                </div>
+                <div
+                    style="background:rgba(239,68,68,0.06); border:1px solid rgba(239,68,68,0.2); border-radius:12px; padding:14px 16px;">
+                    <div
+                        style="font-family:'JetBrains Mono',monospace; font-size:1.2rem; color:var(--c-ind); font-weight:700; margin-bottom:8px;">
+                        N(E<sub>F</sub>)</div>
+                    <p style="font-size:0.88rem; color:var(--text-muted); line-height:1.5; margin:0;">The <strong
+                            style="color:#fff;">density of states at the Fermi level</strong>: how many electron states
+                        are available right at the energy boundary. A sharp peak here means the system is "ready" to
+                        magnetize.</p>
+                </div>
+            </div>
+
+            <!-- The logic -->
+            <div
+                style="background:rgba(239,68,68,0.05); border-left:3px solid var(--c-ind); border-radius:0 10px 10px 0; padding:14px 18px; margin-bottom:14px;">
+                <p style="font-size:0.95rem; color:var(--text-muted); line-height:1.6; margin:0;">
+                    When <strong style="color:#fff;">I · N(E<sub>F</sub>) &gt; 1</strong>, the energy gain from
+                    spin-polarizing electrons exceeds the kinetic cost of doing so — the non-magnetic state becomes
+                    unstable and the system <strong style="color:#fff;">spontaneously develops a magnetic
+                        moment</strong>. Below 1, no magnetism.
+                </p>
+            </div>
+
+            <!-- Why it matters here -->
+            <div
+                style="background:rgba(239,68,68,0.05); border-left:3px solid var(--c-ind); border-radius:0 10px 10px 0; padding:14px 18px;">
+                <p style="font-size:0.95rem; color:var(--text-muted); line-height:1.6; margin:0;">
+                    <strong style="color:var(--c-ind);">Why it matters for this work:</strong> By substituting different
+                    3d metals into the MXene, we tune N(E<sub>F</sub>) across the series. The Stoner criterion gives us
+                    a fast, physically grounded filter — those candidates near the threshold are the most interesting,
+                    because small changes in termination or concentration can switch magnetism on or off.
+                </p>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+
+
+
+
+</html>
