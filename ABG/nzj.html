@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tabla Periódica Interactiva · Mapa de los Elementos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,500;0,9..40,700;1,9..40,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root{--alkali:#E85D75;--alkaline:#F28B30;--transition:#F7C948;--post-transition:#7EC8A0;--metalloid:#5CC0C0;--nonmetal:#4A9BD9;--halogen:#7B6FE0;--noble:#B968D9;--lanthanide:#E07BAF;--actinide:#C76E6E;--unknown:#8899AA;--bg:#0B1120;--surface:#131B2E;--surface2:#1A2540;--text:#E8EDF5;--text-dim:#7A8BA8;--accent:#4A9BD9;--border:#1E2D4A}
+    *{margin:0;padding:0;box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden}
+    body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:9999}
+
+    .hero{position:relative;text-align:center;padding:4.5rem 2rem 2.5rem}
+    .hero::before{content:'';position:absolute;top:-40%;left:50%;transform:translateX(-50%);width:800px;height:800px;background:radial-gradient(circle,rgba(74,155,217,0.12) 0%,transparent 70%);pointer-events:none}
+    .hero-badge{display:inline-flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);padding:0.4rem 1.2rem;border-radius:100px;font-size:0.82rem;color:var(--accent);font-weight:500;margin-bottom:1.2rem;letter-spacing:0.5px}
+    .hero-badge .dot{width:6px;height:6px;background:var(--accent);border-radius:50%;animation:pulse 2s infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+    .hero h1{font-family:'Space Mono',monospace;font-size:clamp(2.2rem,5vw,3.8rem);font-weight:700;letter-spacing:-2px;line-height:1.1;margin-bottom:0.8rem;background:linear-gradient(135deg,#fff 0%,#4A9BD9 50%,#B968D9 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .hero p{font-size:1.1rem;color:var(--text-dim);max-width:550px;margin:0 auto}
+
+    .nav-pills{display:flex;justify-content:center;gap:0.5rem;padding:0.8rem 2rem;flex-wrap:wrap;position:sticky;top:0;z-index:100;background:rgba(11,17,32,0.88);backdrop-filter:blur(16px);border-bottom:1px solid var(--border)}
+    .nav-pill{background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);padding:0.4rem 1rem;border-radius:100px;font-size:0.82rem;font-weight:500;cursor:pointer;text-decoration:none;transition:all 0.25s}
+    .nav-pill:hover{background:var(--accent);color:#fff;border-color:var(--accent);transform:translateY(-1px)}
+
+    .container{max-width:1400px;margin:0 auto;padding:0 1.5rem}
+    .container-wide{max-width:100%;margin:0 auto;padding:0 0.5rem}
+    section{padding:3.5rem 0}
+    .section-label{font-family:'Space Mono',monospace;font-size:0.72rem;text-transform:uppercase;letter-spacing:3px;color:var(--accent);margin-bottom:0.4rem}
+    .section-title{font-family:'Space Mono',monospace;font-size:clamp(1.5rem,3vw,2.2rem);font-weight:700;letter-spacing:-1px;margin-bottom:0.8rem}
+    .section-desc{font-size:1rem;color:var(--text-dim);max-width:700px;margin-bottom:2rem}
+
+    .search-wrap{position:relative;margin-bottom:1.2rem}
+    .search-wrap input{width:100%;max-width:420px;padding:0.7rem 1rem 0.7rem 2.8rem;border-radius:14px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.92rem;outline:none;transition:border-color 0.2s}
+    .search-wrap input::placeholder{color:var(--text-dim)}
+    .search-wrap input:focus{border-color:var(--accent)}
+    .search-wrap .si{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:1rem;color:var(--text-dim);pointer-events:none}
+    .src{display:inline-block;font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--text-dim);margin-left:12px;vertical-align:middle}
+
+    .filter-panel{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:1.2rem 1.4rem;margin-bottom:1.2rem;display:flex;flex-direction:column;gap:1rem}
+    .filter-section{display:flex;flex-direction:column;gap:0.4rem}
+    .filter-label{font-family:'Space Mono',monospace;font-size:0.7rem;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-dim);padding-left:2px}
+    .filter-row{display:flex;flex-wrap:wrap;gap:0.35rem}
+    .fbtn{display:inline-flex;align-items:center;gap:5px;background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);padding:0.32rem 0.8rem;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:0.76rem;font-weight:600;cursor:pointer;transition:all 0.22s;white-space:nowrap}
+    .fbtn:hover{border-color:rgba(255,255,255,0.2);color:var(--text);transform:translateY(-1px)}
+    .fbtn.active{background:rgba(255,255,255,0.07);border-color:rgba(255,255,255,0.22);color:var(--text)}
+    .fbtn .cdot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+    .fbtn[data-cat="alkali"].active{border-color:var(--alkali);color:var(--alkali)}
+    .fbtn[data-cat="alkaline"].active{border-color:var(--alkaline);color:var(--alkaline)}
+    .fbtn[data-cat="transition"].active{border-color:var(--transition);color:var(--transition)}
+    .fbtn[data-cat="post-transition"].active{border-color:var(--post-transition);color:var(--post-transition)}
+    .fbtn[data-cat="metalloid"].active{border-color:var(--metalloid);color:var(--metalloid)}
+    .fbtn[data-cat="nonmetal"].active{border-color:var(--nonmetal);color:var(--nonmetal)}
+    .fbtn[data-cat="halogen"].active{border-color:var(--halogen);color:var(--halogen)}
+    .fbtn[data-cat="noble"].active{border-color:var(--noble);color:var(--noble)}
+    .fbtn[data-cat="lanthanide"].active{border-color:var(--lanthanide);color:var(--lanthanide)}
+    .fbtn[data-cat="actinide"].active{border-color:var(--actinide);color:var(--actinide)}
+    .gbtn{background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);padding:0.3rem 0.55rem;border-radius:8px;font-family:'Space Mono',monospace;font-size:0.72rem;cursor:pointer;transition:all 0.2s;min-width:30px;text-align:center}
+    .gbtn:hover{border-color:var(--accent);color:var(--text)}
+    .gbtn.active{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 0 12px rgba(74,155,217,0.25)}
+
+    .filter-info{margin-bottom:1.2rem}
+    .filter-info:empty{display:none}
+    .fi-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1rem 1.3rem;display:flex;align-items:flex-start;gap:0.8rem;animation:fadeUp .25s ease}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    .fi-card .fi-icon{font-size:1.6rem;flex-shrink:0;margin-top:2px}
+    .fi-card h4{font-family:'Space Mono',monospace;font-size:0.95rem;margin-bottom:0.2rem}
+    .fi-card p{color:var(--text-dim);font-size:0.85rem;line-height:1.5}
+    .fi-card .fi-count{display:inline-block;margin-top:0.4rem;font-family:'Space Mono',monospace;font-size:0.72rem;padding:0.15rem 0.7rem;border-radius:100px;background:rgba(255,255,255,0.05);border:1px solid var(--border)}
+    .fi-chips{display:flex;flex-wrap:wrap;gap:0.25rem;margin-top:0.5rem}
+    .fi-chip{font-family:'Space Mono',monospace;font-size:0.68rem;font-weight:700;padding:0.12rem 0.45rem;border-radius:5px;background:rgba(255,255,255,0.05);border:1px solid var(--border);cursor:pointer;transition:all 0.15s}
+    .fi-chip:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+    .table-layout{display:flex;gap:10px;align-items:flex-start;justify-content:center;padding:0.5rem 0 1rem}
+    .table-layout .table-outer{flex:0 1 auto;overflow-x:auto;-webkit-overflow-scrolling:touch}
+    .cat-sidebar{display:flex;flex-direction:column;gap:3px;padding-top:26px;flex-shrink:0;position:sticky;top:80px;min-width:110px}
+    .cat-label{display:flex;align-items:center;gap:5px;padding:0.3rem 0.55rem;border-radius:8px;background:var(--surface);border:1.5px solid var(--border);cursor:pointer;transition:all 0.25s;white-space:nowrap;user-select:none}
+    .cat-label:hover{border-color:rgba(255,255,255,0.2);transform:translateX(-2px)}
+    .cat-label .cl-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+    .cat-label .cl-name{font-family:'Space Mono',monospace;font-size:0.58rem;font-weight:600;color:var(--text-dim);letter-spacing:0.1px}
+    .cat-label .cl-count{font-family:'Space Mono',monospace;font-size:0.5rem;color:var(--text-dim);opacity:0.5;margin-left:auto;padding-left:4px}
+    .cat-label.active{border-color:var(--active-color,var(--accent));background:rgba(255,255,255,0.04)}
+    .cat-label.active .cl-name{color:var(--active-color,var(--accent))}
+    .cat-label.active .cl-count{color:var(--active-color,var(--accent));opacity:0.8}
+    @media(max-width:1200px){.cat-sidebar,.per-sidebar{display:none}}
+    .per-sidebar{display:flex;flex-direction:column;gap:3px;padding-top:26px;flex-shrink:0;position:sticky;top:80px;min-width:65px}
+    .sb-divider{padding:0.3rem 0 0.15rem;text-align:center;position:relative}
+    .sb-divider span{font-family:'Space Mono',monospace;font-size:0.48rem;text-transform:uppercase;letter-spacing:2px;color:var(--text-dim);background:var(--bg);padding:0 4px;position:relative;z-index:1}
+    .sb-divider::before{content:'';position:absolute;top:50%;left:10%;right:10%;height:1px;background:var(--border)}
+    .ptable{display:grid;grid-template-columns:24px repeat(18,52px);grid-auto-rows:52px;gap:2px;min-width:1000px;padding-top:22px;position:relative}
+    .gh{font-family:'Space Mono',monospace;font-size:0.62rem;color:var(--text-dim);display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px;user-select:none}
+    .pl{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--text-dim);display:flex;align-items:center;justify-content:center;font-weight:700;user-select:none}
+
+    .el{position:relative;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all 0.25s cubic-bezier(.4,0,.2,1);border:1.5px solid rgba(255,255,255,0.04);overflow:hidden;padding:2px}
+    .el:hover{transform:scale(1.6);z-index:50;box-shadow:0 8px 28px rgba(0,0,0,0.6);border-color:rgba(255,255,255,0.35)}
+    .el .z{font-size:0.48rem;opacity:0.6;font-weight:500;line-height:1}
+    .el .sym{font-family:'Space Mono',monospace;font-size:1.05rem;font-weight:700;line-height:1.1}
+    .el .nm{font-size:0.36rem;opacity:0.55;line-height:1;text-align:center;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 1px}
+    .el .ms{font-size:0.36rem;opacity:0.4;line-height:1;font-family:'Space Mono',monospace}
+    .el .sd{position:absolute;top:3px;right:3px;width:5px;height:5px;border-radius:50%}
+    .state-solid .sd{background:rgba(255,255,255,0.35)}.state-liquid .sd{background:#4fc3f7}.state-gas .sd{background:#81c784}.state-unknown .sd{background:rgba(255,255,255,0.12)}
+
+    .cat-alkali{background:color-mix(in srgb,var(--alkali) 22%,var(--surface));color:var(--alkali)}
+    .cat-alkaline{background:color-mix(in srgb,var(--alkaline) 22%,var(--surface));color:var(--alkaline)}
+    .cat-transition{background:color-mix(in srgb,var(--transition) 22%,var(--surface));color:var(--transition)}
+    .cat-post-transition{background:color-mix(in srgb,var(--post-transition) 22%,var(--surface));color:var(--post-transition)}
+    .cat-metalloid{background:color-mix(in srgb,var(--metalloid) 22%,var(--surface));color:var(--metalloid)}
+    .cat-nonmetal{background:color-mix(in srgb,var(--nonmetal) 22%,var(--surface));color:var(--nonmetal)}
+    .cat-halogen{background:color-mix(in srgb,var(--halogen) 22%,var(--surface));color:var(--halogen)}
+    .cat-noble{background:color-mix(in srgb,var(--noble) 22%,var(--surface));color:var(--noble)}
+    .cat-lanthanide{background:color-mix(in srgb,var(--lanthanide) 22%,var(--surface));color:var(--lanthanide)}
+    .cat-actinide{background:color-mix(in srgb,var(--actinide) 22%,var(--surface));color:var(--actinide)}
+    .cat-unknown{background:color-mix(in srgb,var(--unknown) 18%,var(--surface));color:var(--unknown)}
+
+    .la-label{display:flex;align-items:center;font-family:'Space Mono',monospace;font-size:0.58rem;color:var(--text-dim);padding-left:2px;white-space:nowrap;grid-column:1/4}
+    .state-legend{display:flex;gap:1.2rem;flex-wrap:wrap;margin-top:0.6rem;padding-left:30px}
+    .state-legend span{display:inline-flex;align-items:center;gap:5px;font-size:0.72rem;color:var(--text-dim)}
+    .state-legend .sld{width:7px;height:7px;border-radius:50%}
+
+    .ptable.filtering .el{opacity:0.07;filter:grayscale(1) brightness(0.4);transition:all 0.35s cubic-bezier(.4,0,.2,1)}
+    .ptable.filtering .el.hl{opacity:1;filter:none;z-index:10;border:2px solid currentColor;animation:gP 2.2s ease-in-out infinite;transition:all 0.35s cubic-bezier(.4,0,.2,1)}
+    .ptable.filtering .el:not(.hl):hover{box-shadow:none}
+    .ptable.filtering .el.hl:hover{transform:scale(1.55);z-index:50;animation:none}
+    .ptable.filtering .el.hl.cat-alkali{box-shadow:0 0 12px rgba(232,93,117,0.45),inset 0 0 6px rgba(232,93,117,0.12);background:color-mix(in srgb,var(--alkali) 38%,var(--surface))}
+    .ptable.filtering .el.hl.cat-alkaline{box-shadow:0 0 12px rgba(242,139,48,0.45),inset 0 0 6px rgba(242,139,48,0.12);background:color-mix(in srgb,var(--alkaline) 38%,var(--surface))}
+    .ptable.filtering .el.hl.cat-transition{box-shadow:0 0 12px rgba(247,201,72,0.45),inset 0 0 6px rgba(247,201,72,0.12);background:color-mix(in srgb,var(--transition) 38%,var(--surface))}
+    .ptable.filtering .el.hl.cat-post-transition{box-shadow:0 0 12px rgba(126,200,160,0.45),inset 0 0 6px rgba(126,200,160,0.12);background:color-mix(in srgb,var(--post-transition) 38%,var(--surface))}
+    .ptable.filtering .el.hl.cat-metalloid{box-shadow:0 0 12px rgba(92,192,192,0.45),inset 0 0 6px rgba(92,192,192,0.12);background:color-mix(in srgb,var(--metalloid) 38%,var(--surface))}
+    .ptable.filtering .el.hl.cat-nonmetal{box-shadow:0 0 12px rgba(74,155,217,0.45),inset 0 0 6px rgba(74,155,217,0.12);background:color-mix(in srgb,var(--nonmetal) 38%,var(--surface))}
+    .ptable.filtering .el.hl.cat-halogen{box-shadow:0 0 12px rgba(123,111,224,0.45),inset 0 0 6px rgba(123,111,224,0.12);background:color-mix(in srgb,var(--halogen) 38%,var(--surface))}
+    .ptable.filtering .el.hl.cat-noble{box-shadow:0 0 12px rgba(185,104,217,0.45),inset 0 0 6px rgba(185,104,217,0.12);background:color-mix(in srgb,var(--noble) 38%,var(--surface))}
+    .ptable.filtering .el.hl.cat-lanthanide{box-shadow:0 0 12px rgba(224,123,175,0.45),inset 0 0 6px rgba(224,123,175,0.12);background:color-mix(in srgb,var(--lanthanide) 38%,var(--surface))}
+    .ptable.filtering .el.hl.cat-actinide{box-shadow:0 0 12px rgba(199,110,110,0.45),inset 0 0 6px rgba(199,110,110,0.12);background:color-mix(in srgb,var(--actinide) 38%,var(--surface))}
+    .ptable.filtering .el.hl.cat-unknown{box-shadow:0 0 12px rgba(136,153,170,0.35),inset 0 0 6px rgba(136,153,170,0.1);background:color-mix(in srgb,var(--unknown) 35%,var(--surface))}
+    .ptable.filtering .el.hl .sym{filter:brightness(1.25)}
+    .ptable.filtering .el.hl .z,.ptable.filtering .el.hl .nm{opacity:1}
+    @keyframes gP{0%,100%{filter:brightness(1)}50%{filter:brightness(1.12)}}
+
+    .tooltip{display:none;position:fixed;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:0.8rem 1rem;z-index:200;pointer-events:none;box-shadow:0 12px 40px rgba(0,0,0,0.5);min-width:180px;max-width:220px}
+    .tooltip.visible{display:block;animation:fadeUp .15s ease}
+    .tooltip .tt-sym{font-family:'Space Mono',monospace;font-size:1.6rem;font-weight:700;line-height:1}
+    .tooltip .tt-name{font-size:0.88rem;font-weight:600;margin-top:2px}
+    .tooltip .tt-meta{font-size:0.72rem;color:var(--text-dim);margin-top:4px;line-height:1.5}
+    .tooltip .tt-meta b{color:var(--text);font-weight:600}
+
+    .detail-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);z-index:999}
+    .detail-overlay.show{display:block}
+    .detail-popup{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--surface);border:1px solid var(--border);border-radius:22px;padding:2.2rem;z-index:1000;min-width:320px;max-width:440px;width:90%;box-shadow:0 28px 70px rgba(0,0,0,0.6)}
+    .detail-popup.show{display:block;animation:popIn .22s ease}
+    @keyframes popIn{from{opacity:0;transform:translate(-50%,-50%) scale(.92)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+    .detail-close{position:absolute;top:0.8rem;right:0.8rem;width:30px;height:30px;border-radius:50%;border:1px solid var(--border);background:var(--surface2);color:var(--text-dim);font-size:0.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s}
+    .detail-close:hover{background:var(--accent);color:#fff}
+    .dp-sym{font-family:'Space Mono',monospace;font-size:3.5rem;font-weight:700;line-height:1}
+    .dp-name{font-size:1.3rem;font-weight:700;margin-top:0.15rem}
+    .dp-sub{font-size:0.82rem;color:var(--text-dim);margin-bottom:0.8rem}
+    .dp-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.5rem}
+    .dp-item{background:var(--surface2);border-radius:10px;padding:0.5rem 0.7rem}
+    .dp-item .dl{font-size:0.6rem;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-dim)}
+    .dp-item .dv{font-family:'Space Mono',monospace;font-size:0.88rem;font-weight:700}
+    .dp-full{grid-column:1/-1}
+
+    .info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:1rem}
+    .info-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:1.6rem;transition:all 0.3s;position:relative;overflow:hidden}
+    .info-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:18px 18px 0 0}
+    .info-card:hover{border-color:rgba(74,155,217,0.25);transform:translateY(-3px);box-shadow:0 10px 35px rgba(0,0,0,0.2)}
+    .info-card .icw{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin-bottom:0.8rem}
+    .info-card h3{font-family:'Space Mono',monospace;font-size:1rem;margin-bottom:0.4rem;letter-spacing:-0.3px}
+    .info-card p{color:var(--text-dim);font-size:0.88rem}
+    .info-card .tag{display:inline-block;padding:0.15rem 0.6rem;border-radius:100px;font-size:0.72rem;font-weight:600;margin-top:0.6rem;margin-right:0.2rem}
+    .c-blue::before{background:var(--accent)}.c-blue .icw{background:rgba(74,155,217,0.12);color:var(--accent)}.c-blue .tag{background:rgba(74,155,217,0.12);color:var(--accent)}
+    .c-purple::before{background:var(--halogen)}.c-purple .icw{background:rgba(123,111,224,0.12);color:var(--halogen)}.c-purple .tag{background:rgba(123,111,224,0.12);color:var(--halogen)}
+    .c-pink::before{background:var(--alkali)}.c-pink .icw{background:rgba(232,93,117,0.12);color:var(--alkali)}.c-pink .tag{background:rgba(232,93,117,0.12);color:var(--alkali)}
+    .c-green::before{background:var(--post-transition)}.c-green .icw{background:rgba(126,200,160,0.12);color:var(--post-transition)}.c-green .tag{background:rgba(126,200,160,0.12);color:var(--post-transition)}
+    .c-yellow::before{background:var(--transition)}.c-yellow .icw{background:rgba(247,201,72,0.12);color:var(--transition)}.c-yellow .tag{background:rgba(247,201,72,0.12);color:var(--transition)}
+    .c-teal::before{background:var(--metalloid)}.c-teal .icw{background:rgba(92,192,192,0.12);color:var(--metalloid)}.c-teal .tag{background:rgba(92,192,192,0.12);color:var(--metalloid)}
+
+    .chip-row{display:flex;flex-wrap:wrap;gap:0.5rem;margin:1.2rem 0;justify-content:center}
+    .chip{display:inline-flex;align-items:center;gap:7px;background:var(--surface);border:1px solid var(--border);padding:0.4rem 0.9rem 0.4rem 0.4rem;border-radius:100px;font-weight:600;transition:all 0.2s}
+    .chip:hover{border-color:var(--accent);transform:translateY(-2px)}
+    .chip .cs{font-family:'Space Mono',monospace;background:var(--surface2);padding:0.25rem 0.6rem;border-radius:100px;font-size:1.05rem;font-weight:700}
+    .chip .cl{font-size:0.85rem}
+
+    .blocks-vis{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:0.9rem;margin-top:1.2rem}
+    .bcard{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.2rem;text-align:center;transition:all 0.3s}
+    .bcard:hover{transform:translateY(-3px);box-shadow:0 8px 25px rgba(0,0,0,0.2)}
+    .bcard .bl{font-family:'Space Mono',monospace;font-size:2.2rem;font-weight:700;line-height:1;margin-bottom:0.3rem}
+    .bcard .bd{font-size:0.75rem;color:var(--text-dim)}
+    .block-s .bl{color:var(--alkali)}.block-s{border-color:rgba(232,93,117,0.2)}
+    .block-p .bl{color:var(--nonmetal)}.block-p{border-color:rgba(74,155,217,0.2)}
+    .block-d .bl{color:var(--transition)}.block-d{border-color:rgba(247,201,72,0.2)}
+    .block-f .bl{color:var(--lanthanide)}.block-f{border-color:rgba(224,123,175,0.2)}
+
+    .facts-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem}
+    .fact-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.4rem;transition:all 0.3s}
+    .fact-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+    .fact-card .fe{font-size:1.6rem;margin-bottom:0.5rem}
+    .fact-card h4{font-family:'Space Mono',monospace;font-size:0.9rem;margin-bottom:0.3rem}
+    .fact-card p{font-size:0.85rem;color:var(--text-dim)}
+
+    .support-box{background:linear-gradient(135deg,var(--surface) 0%,color-mix(in srgb,var(--accent) 6%,var(--surface)) 100%);border:1px solid var(--border);border-radius:20px;padding:2rem;margin-top:2rem}
+    .support-box h3{font-family:'Space Mono',monospace;font-size:1.2rem;margin-bottom:0.8rem}
+    .rc{display:flex;flex-wrap:wrap;gap:0.5rem}
+    .rc span{display:inline-flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);padding:0.5rem 1rem;border-radius:100px;font-weight:600;font-size:0.85rem;transition:all 0.2s}
+    .rc span:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+    footer{text-align:center;padding:2.5rem 2rem;color:var(--text-dim);font-size:0.88rem;border-top:1px solid var(--border);margin-top:3.5rem}
+    footer .fa{font-size:1.8rem;margin-bottom:0.4rem}
+    @media(max-width:768px){.hero{padding:2.5rem 1rem 1.5rem}section{padding:2rem 0}.detail-popup{min-width:280px;padding:1.5rem}.ptable{grid-template-columns:20px repeat(18,42px);grid-auto-rows:42px}.el .sym{font-size:0.78rem}}
+    .el{animation:fadeUp .3s ease forwards;animation-delay:calc(var(--i,0)*2ms);opacity:0}
+  </style>
+</head>
+<body>
+<div class="hero">
+  <div class="hero-badge"><span class="dot"></span> Material didáctico interactivo</div>
+  <h1>La Tabla<br>Periódica</h1>
+  <p>El mapa donde cada elemento químico tiene su lugar. Explora los 118 elementos organizados por periodos, grupos y familias.</p>
+</div>
+<nav class="nav-pills">
+  <a href="#simbolos" class="nav-pill">Símbolos</a>
+  <a href="#tabla" class="nav-pill">Tabla completa</a>
+  <a href="#grupos" class="nav-pill">Grupos</a>
+  <a href="#periodos" class="nav-pill">Periodos</a>
+  <a href="#bloques" class="nav-pill">Bloques</a>
+  <a href="#clasificacion" class="nav-pill">Clasificación</a>
+  <a href="#datos" class="nav-pill">Datos curiosos</a>
+  <a href="#tierras" class="nav-pill">Tierras raras</a>
+</nav>
+<div class="container">
+  <section id="simbolos">
+    <div class="section-label">01 — Fundamentos</div>
+    <div class="section-title">Nombres y símbolos</div>
+    <div class="section-desc">Cada elemento tiene un nombre y un símbolo de 1 o 2 letras. La primera siempre es mayúscula. Son apodos científicos internacionales.</div>
+    <div class="chip-row">
+      <div class="chip"><span class="cs" style="color:var(--nonmetal)">H</span><span class="cl">Hidrógeno</span></div>
+      <div class="chip"><span class="cs" style="color:var(--noble)">He</span><span class="cl">Helio</span></div>
+      <div class="chip"><span class="cs" style="color:var(--nonmetal)">C</span><span class="cl">Carbono</span></div>
+      <div class="chip"><span class="cs" style="color:var(--nonmetal)">O</span><span class="cl">Oxígeno</span></div>
+      <div class="chip"><span class="cs" style="color:var(--transition)">Fe</span><span class="cl">Hierro</span></div>
+      <div class="chip"><span class="cs" style="color:var(--transition)">Au</span><span class="cl">Oro</span></div>
+      <div class="chip"><span class="cs" style="color:var(--transition)">Ag</span><span class="cl">Plata</span></div>
+    </div>
+  </section>
+  <section id="tabla">
+    <div class="section-label">02 — Tabla completa</div>
+    <div class="section-title">Los 118 elementos</div>
+    <div class="section-desc">Pasa el mouse sobre un elemento para ver info rápida, haz clic para detalles completos. Usa el buscador y los filtros para explorar.</div>
+    <div class="search-wrap">
+      <span class="si">🔍</span>
+      <input type="text" id="searchInput" placeholder="Buscar por nombre, símbolo o número..." oninput="searchElements(this.value)">
+      <span class="src" id="searchCount"></span>
+    </div>
+    <div class="filter-panel">
+      <div class="filter-section">
+        <div class="filter-label">🧪 Familia</div>
+        <div class="filter-row" id="catFilters">
+          <button class="fbtn active" data-cat="all" onclick="fCat('all',this)"><span class="cdot" style="background:var(--text-dim)"></span>Todas</button>
+          <button class="fbtn" data-cat="alkali" onclick="fCat('alkali',this)"><span class="cdot" style="background:var(--alkali)"></span>Alcalinos</button>
+          <button class="fbtn" data-cat="alkaline" onclick="fCat('alkaline',this)"><span class="cdot" style="background:var(--alkaline)"></span>Alcalinotérreos</button>
+          <button class="fbtn" data-cat="transition" onclick="fCat('transition',this)"><span class="cdot" style="background:var(--transition)"></span>Transición</button>
+          <button class="fbtn" data-cat="post-transition" onclick="fCat('post-transition',this)"><span class="cdot" style="background:var(--post-transition)"></span>Post-transición</button>
+          <button class="fbtn" data-cat="metalloid" onclick="fCat('metalloid',this)"><span class="cdot" style="background:var(--metalloid)"></span>Metaloides</button>
+          <button class="fbtn" data-cat="nonmetal" onclick="fCat('nonmetal',this)"><span class="cdot" style="background:var(--nonmetal)"></span>No metales</button>
+          <button class="fbtn" data-cat="halogen" onclick="fCat('halogen',this)"><span class="cdot" style="background:var(--halogen)"></span>Halógenos</button>
+          <button class="fbtn" data-cat="noble" onclick="fCat('noble',this)"><span class="cdot" style="background:var(--noble)"></span>Gases nobles</button>
+          <button class="fbtn" data-cat="lanthanide" onclick="fCat('lanthanide',this)"><span class="cdot" style="background:var(--lanthanide)"></span>Lantánidos</button>
+          <button class="fbtn" data-cat="actinide" onclick="fCat('actinide',this)"><span class="cdot" style="background:var(--actinide)"></span>Actínidos</button>
+        </div>
+      </div>
+      <div class="filter-section">
+        <div class="filter-label">📐 Grupo (columna)</div>
+        <div class="filter-row" id="grpFilters">
+          <button class="gbtn active" onclick="fGrp(0,this)">✱</button>
+          <button class="gbtn" onclick="fGrp(1,this)">1</button><button class="gbtn" onclick="fGrp(2,this)">2</button><button class="gbtn" onclick="fGrp(3,this)">3</button><button class="gbtn" onclick="fGrp(4,this)">4</button><button class="gbtn" onclick="fGrp(5,this)">5</button><button class="gbtn" onclick="fGrp(6,this)">6</button><button class="gbtn" onclick="fGrp(7,this)">7</button><button class="gbtn" onclick="fGrp(8,this)">8</button><button class="gbtn" onclick="fGrp(9,this)">9</button><button class="gbtn" onclick="fGrp(10,this)">10</button><button class="gbtn" onclick="fGrp(11,this)">11</button><button class="gbtn" onclick="fGrp(12,this)">12</button><button class="gbtn" onclick="fGrp(13,this)">13</button><button class="gbtn" onclick="fGrp(14,this)">14</button><button class="gbtn" onclick="fGrp(15,this)">15</button><button class="gbtn" onclick="fGrp(16,this)">16</button><button class="gbtn" onclick="fGrp(17,this)">17</button><button class="gbtn" onclick="fGrp(18,this)">18</button>
+        </div>
+      </div>
+      <div class="filter-section">
+        <div class="filter-label">↔️ Periodo (fila)</div>
+        <div class="filter-row" id="perFilters">
+          <button class="gbtn active" onclick="fPer(0,this)">✱</button>
+          <button class="gbtn" onclick="fPer(1,this)">1</button><button class="gbtn" onclick="fPer(2,this)">2</button><button class="gbtn" onclick="fPer(3,this)">3</button><button class="gbtn" onclick="fPer(4,this)">4</button><button class="gbtn" onclick="fPer(5,this)">5</button><button class="gbtn" onclick="fPer(6,this)">6</button><button class="gbtn" onclick="fPer(7,this)">7</button>
+        </div>
+      </div>
+    </div>
+    <div class="filter-info" id="filterInfo"></div>
+  </section>
+  </div><!-- close container -->
+  <div class="container-wide">
+    <div class="table-layout">
+      <div class="per-sidebar" id="perSidebar">
+        <div class="sb-divider" style="padding-top:0"><span>PERIODOS</span></div>
+        <div class="cat-label per-label" data-sper="1" style="--active-color:var(--accent)" onclick="sidebarPeriod(1,this)"><span class="cl-dot" style="background:#5B8DB8"></span><span class="cl-name">P1</span><span class="cl-count">2</span></div>
+        <div class="cat-label per-label" data-sper="2" style="--active-color:var(--accent)" onclick="sidebarPeriod(2,this)"><span class="cl-dot" style="background:#5B8DB8"></span><span class="cl-name">P2</span><span class="cl-count">8</span></div>
+        <div class="cat-label per-label" data-sper="3" style="--active-color:var(--accent)" onclick="sidebarPeriod(3,this)"><span class="cl-dot" style="background:#5B8DB8"></span><span class="cl-name">P3</span><span class="cl-count">8</span></div>
+        <div class="cat-label per-label" data-sper="4" style="--active-color:var(--accent)" onclick="sidebarPeriod(4,this)"><span class="cl-dot" style="background:#5B8DB8"></span><span class="cl-name">P4</span><span class="cl-count">18</span></div>
+        <div class="cat-label per-label" data-sper="5" style="--active-color:var(--accent)" onclick="sidebarPeriod(5,this)"><span class="cl-dot" style="background:#5B8DB8"></span><span class="cl-name">P5</span><span class="cl-count">18</span></div>
+        <div class="cat-label per-label" data-sper="6" style="--active-color:var(--accent)" onclick="sidebarPeriod(6,this)"><span class="cl-dot" style="background:#5B8DB8"></span><span class="cl-name">P6</span><span class="cl-count">32</span></div>
+        <div class="cat-label per-label" data-sper="7" style="--active-color:var(--accent)" onclick="sidebarPeriod(7,this)"><span class="cl-dot" style="background:#5B8DB8"></span><span class="cl-name">P7</span><span class="cl-count">32</span></div>
+      </div>
+      <div class="table-outer"><div class="ptable" id="ptable"></div></div>
+      <div class="cat-sidebar" id="catSidebar">
+        <div class="sb-divider" style="padding-top:0"><span>FAMILIAS</span></div>
+        <div class="cat-label" data-scat="alkali" style="--active-color:var(--alkali)" onclick="sidebarFilter('alkali',this)"><span class="cl-dot" style="background:var(--alkali)"></span><span class="cl-name">Alcalinos</span><span class="cl-count">6</span></div>
+        <div class="cat-label" data-scat="alkaline" style="--active-color:var(--alkaline)" onclick="sidebarFilter('alkaline',this)"><span class="cl-dot" style="background:var(--alkaline)"></span><span class="cl-name">Alcalinotérreos</span><span class="cl-count">6</span></div>
+        <div class="cat-label" data-scat="transition" style="--active-color:var(--transition)" onclick="sidebarFilter('transition',this)"><span class="cl-dot" style="background:var(--transition)"></span><span class="cl-name">Transición</span><span class="cl-count">33</span></div>
+        <div class="cat-label" data-scat="post-transition" style="--active-color:var(--post-transition)" onclick="sidebarFilter('post-transition',this)"><span class="cl-dot" style="background:var(--post-transition)"></span><span class="cl-name">Post-transición</span><span class="cl-count">11</span></div>
+        <div class="cat-label" data-scat="metalloid" style="--active-color:var(--metalloid)" onclick="sidebarFilter('metalloid',this)"><span class="cl-dot" style="background:var(--metalloid)"></span><span class="cl-name">Metaloides</span><span class="cl-count">7</span></div>
+        <div class="cat-label" data-scat="nonmetal" style="--active-color:var(--nonmetal)" onclick="sidebarFilter('nonmetal',this)"><span class="cl-dot" style="background:var(--nonmetal)"></span><span class="cl-name">No metales</span><span class="cl-count">7</span></div>
+        <div class="cat-label" data-scat="halogen" style="--active-color:var(--halogen)" onclick="sidebarFilter('halogen',this)"><span class="cl-dot" style="background:var(--halogen)"></span><span class="cl-name">Halógenos</span><span class="cl-count">6</span></div>
+        <div class="cat-label" data-scat="noble" style="--active-color:var(--noble)" onclick="sidebarFilter('noble',this)"><span class="cl-dot" style="background:var(--noble)"></span><span class="cl-name">Gases nobles</span><span class="cl-count">7</span></div>
+        <div class="cat-label" data-scat="lanthanide" style="--active-color:var(--lanthanide)" onclick="sidebarFilter('lanthanide',this)"><span class="cl-dot" style="background:var(--lanthanide)"></span><span class="cl-name">Lantánidos</span><span class="cl-count">15</span></div>
+        <div class="cat-label" data-scat="actinide" style="--active-color:var(--actinide)" onclick="sidebarFilter('actinide',this)"><span class="cl-dot" style="background:var(--actinide)"></span><span class="cl-name">Actínidos</span><span class="cl-count">15</span></div>
+        <div class="cat-label" data-scat="unknown" style="--active-color:var(--unknown)" onclick="sidebarFilter('unknown',this)"><span class="cl-dot" style="background:var(--unknown)"></span><span class="cl-name">Desconocido</span><span class="cl-count">5</span></div>
+      </div>
+    </div>
+    <div class="state-legend">
+      <span><span class="sld" style="background:rgba(255,255,255,0.35)"></span> Sólido</span>
+      <span><span class="sld" style="background:#4fc3f7"></span> Líquido</span>
+      <span><span class="sld" style="background:#81c784"></span> Gas</span>
+      <span><span class="sld" style="background:rgba(255,255,255,0.12)"></span> Desconocido</span>
+    </div>
+  </div><!-- close container-wide -->
+  <div class="container">
+  <section id="grupos">
+    <div class="section-label">03 — Columnas verticales</div>
+    <div class="section-title">Grupos y familias</div>
+    <div class="section-desc">Hay 18 columnas verticales. Los elementos de un mismo grupo comparten propiedades por tener la misma configuración de electrones de valencia.</div>
+    <div class="info-grid">
+      <div class="info-card c-pink"><div class="icw">⚡</div><h3>Metales alcalinos</h3><p>Grupo 1 (excepto H). Muy reactivos, blandos, brillo plateado. Reaccionan violentamente con el agua.</p><span class="tag">Li</span><span class="tag">Na</span><span class="tag">K</span><span class="tag">Rb</span></div>
+      <div class="info-card c-yellow"><div class="icw">🔶</div><h3>Alcalinotérreos</h3><p>Grupo 2. Reactivos pero menos que los alcalinos. Forman óxidos e hidróxidos.</p><span class="tag">Be</span><span class="tag">Mg</span><span class="tag">Ca</span><span class="tag">Ba</span></div>
+      <div class="info-card c-green"><div class="icw">🔧</div><h3>Metales de transición</h3><p>Grupos 3-12. Duros, densos, buenos conductores. Compuestos coloridos.</p><span class="tag">Fe</span><span class="tag">Cu</span><span class="tag">Au</span><span class="tag">Zn</span></div>
+      <div class="info-card c-purple"><div class="icw">💨</div><h3>Halógenos</h3><p>Grupo 17. Muy reactivos, forman sales con metales. Moléculas diatómicas.</p><span class="tag">F</span><span class="tag">Cl</span><span class="tag">Br</span><span class="tag">I</span></div>
+      <div class="info-card c-blue"><div class="icw">✨</div><h3>Gases nobles</h3><p>Grupo 18. Muy estables, casi no reaccionan. Capa electrónica completa.</p><span class="tag">He</span><span class="tag">Ne</span><span class="tag">Ar</span><span class="tag">Kr</span></div>
+      <div class="info-card c-teal"><div class="icw">🔬</div><h3>Metaloides</h3><p>En la "escalera" entre metales y no metales. Semiconductores para electrónica.</p><span class="tag">B</span><span class="tag">Si</span><span class="tag">Ge</span><span class="tag">As</span></div>
+    </div>
+  </section>
+  <section id="periodos">
+    <div class="section-label">04 — Filas horizontales</div>
+    <div class="section-title">Periodos</div>
+    <div class="section-desc">Las 7 filas se llaman periodos. Cada periodo indica cuántas capas electrónicas tienen los átomos. Al bajar, los átomos son más grandes.</div>
+    <div class="info-grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
+      <div class="info-card c-pink"><h3>P1</h3><p>2 elementos. Capa 1s.</p><span class="tag">H</span><span class="tag">He</span></div>
+      <div class="info-card c-yellow"><h3>P2</h3><p>8 elementos. Capas 2s, 2p.</p><span class="tag">Li → Ne</span></div>
+      <div class="info-card c-green"><h3>P3</h3><p>8 elementos. Capas 3s, 3p.</p><span class="tag">Na → Ar</span></div>
+      <div class="info-card c-blue"><h3>P4</h3><p>18 elementos. Primeros metales de transición (3d).</p><span class="tag">K → Kr</span></div>
+      <div class="info-card c-purple"><h3>P5</h3><p>18 elementos. Orbitales 4d.</p><span class="tag">Rb → Xe</span></div>
+      <div class="info-card c-teal"><h3>P6</h3><p>32 elementos. Incluye lantánidos (4f).</p><span class="tag">Cs → Rn</span></div>
+      <div class="info-card c-pink"><h3>P7</h3><p>32 elementos. Actínidos (5f) y superpesados.</p><span class="tag">Fr → Og</span></div>
+    </div>
+  </section>
+  <section id="bloques">
+    <div class="section-label">05 — Orbitales</div>
+    <div class="section-title">Bloques s, p, d, f</div>
+    <div class="section-desc">La tabla se divide en 4 bloques según el tipo de orbital donde entran los últimos electrones.</div>
+    <div class="blocks-vis">
+      <div class="bcard block-s"><div class="bl">s</div><div class="bd">Grupos 1 y 2<br>Alcalinos y alcalinotérreos</div></div>
+      <div class="bcard block-p"><div class="bl">p</div><div class="bd">Grupos 13 a 18<br>No metales, metaloides, nobles</div></div>
+      <div class="bcard block-d"><div class="bl">d</div><div class="bd">Grupos 3 a 12<br>Metales de transición</div></div>
+      <div class="bcard block-f"><div class="bl">f</div><div class="bd">Lantánidos y actínidos<br>Tierras raras</div></div>
+    </div>
+  </section>
+  <section id="clasificacion">
+    <div class="section-label">06 — Propiedades</div>
+    <div class="section-title">Metales, no metales y metaloides</div>
+    <div class="section-desc">Tres grandes categorías según propiedades físicas y químicas.</div>
+    <div class="info-grid">
+      <div class="info-card c-blue"><div class="icw">🔨</div><h3>Metales</h3><p>Brillan, conducen electricidad y calor, maleables y dúctiles. Ocupan la mayor parte de la tabla.</p><span class="tag">Fe</span><span class="tag">Cu</span><span class="tag">Au</span><span class="tag">Al</span></div>
+      <div class="info-card c-yellow"><div class="icw">💨</div><h3>No metales</h3><p>Opacos, frágiles, malos conductores. Arriba a la derecha. Esenciales para la vida.</p><span class="tag">O</span><span class="tag">C</span><span class="tag">N</span><span class="tag">Cl</span></div>
+      <div class="info-card c-teal"><div class="icw">🔌</div><h3>Metaloides</h3><p>Propiedades intermedias. Semiconductores: base de la electrónica moderna.</p><span class="tag">Si</span><span class="tag">Ge</span><span class="tag">B</span><span class="tag">Te</span></div>
+    </div>
+  </section>
+  <section id="datos">
+    <div class="section-label">07 — Sabías que...</div>
+    <div class="section-title">Datos curiosos</div>
+    <div class="section-desc">La tabla periódica está llena de historias fascinantes.</div>
+    <div class="facts-grid">
+      <div class="fact-card"><div class="fe">🌡️</div><h4>El más caliente y el más frío</h4><p>El wolframio (W) tiene el punto de fusión más alto: 3,422 °C. El helio tiene el más bajo: −272 °C, casi el cero absoluto.</p></div>
+      <div class="fact-card"><div class="fe">💧</div><h4>Metal líquido</h4><p>El mercurio (Hg) y el galio (Ga) son líquidos cerca de la temperatura ambiente. El galio se derrite en tu mano.</p></div>
+      <div class="fact-card"><div class="fe">⚖️</div><h4>El más pesado y el más ligero</h4><p>El osmio (Os) es el más denso: 22.59 g/cm³. El hidrógeno (H) es el más ligero del universo.</p></div>
+      <div class="fact-card"><div class="fe">🧬</div><h4>Somos polvo de estrellas</h4><p>El carbono, oxígeno, nitrógeno y hierro de tu cuerpo se formaron dentro de estrellas que explotaron hace miles de millones de años.</p></div>
+      <div class="fact-card"><div class="fe">📱</div><h4>Tu teléfono tiene ~30 elementos</h4><p>Desde el litio de la batería hasta el indio de la pantalla, tierras raras en los imanes y oro en los circuitos.</p></div>
+      <div class="fact-card"><div class="fe">👤</div><h4>Mendeléyev predijo el futuro</h4><p>En 1869, Dmitri Mendeléyev dejó huecos en su tabla para elementos aún no descubiertos, ¡y acertó en sus propiedades!</p></div>
+    </div>
+  </section>
+  <section id="tierras">
+    <div class="section-label">08 — Bloque f</div>
+    <div class="section-title">Tierras raras</div>
+    <div class="section-desc">Lantánidos y actínidos se colocan aparte. Se usan en pantallas, imanes, láseres y tecnología nuclear.</div>
+    <div class="info-grid" style="grid-template-columns:1fr 1fr">
+      <div class="info-card c-pink"><div class="icw">🌸</div><h3>Lantánidos (4f)</h3><p>Ce (Z=58) a Lu (Z=71). Imanes de neodimio, pantallas LCD, láseres.</p><span class="tag">Ce</span><span class="tag">Nd</span><span class="tag">Eu</span><span class="tag">Gd</span></div>
+      <div class="info-card c-yellow"><div class="icw">☢️</div><h3>Actínidos (5f)</h3><p>Th (Z=90) a Lr (Z=103). Mayoría radiactivos. Uranio y plutonio: combustible nuclear.</p><span class="tag">Th</span><span class="tag">U</span><span class="tag">Pu</span><span class="tag">Am</span></div>
+    </div>
+  </section>
+  <div class="support-box">
+    <h3>📦 Material de apoyo</h3>
+    <p style="color:var(--text-dim);margin-bottom:0.8rem">Pide a tu profe estos materiales para seguir explorando.</p>
+    <div class="rc">
+      <span>📊 Presentación: Elementos químicos</span>
+      <span>🏷️ Nombre y símbolos de Tierras Raras</span>
+      <span>📋 Presentación: Tabla Periódica</span>
+    </div>
+  </div>
+</div>
+<div class="tooltip" id="tooltip"></div>
+<div class="detail-overlay" id="dOverlay" onclick="closeDetail()"></div>
+<div class="detail-popup" id="dPopup"><button class="detail-close" onclick="closeDetail()">✕</button><div id="dContent"></div></div>
+<footer>
+  <div class="fa">⚛️</div>
+  <p>La tabla periódica es como un vecindario: cada elemento tiene su lugar y sus vecinos.<br>¡Aprende a ubicarlos y descubrirás sus secretos!</p>
+  <p style="margin-top:1.2rem;font-family:'Space Mono',monospace;font-size:0.78rem;opacity:0.55">Creada por J. Ignacio Borge</p>
+</footer>
+<script>
+const E=[
+{z:1,s:"H",n:"Hidrógeno",m:"1.008",c:"nonmetal",p:1,g:1,b:"s",cfg:"1s¹",y:"1766",st:"g",en:2.20},
+{z:2,s:"He",n:"Helio",m:"4.003",c:"noble",p:1,g:18,b:"s",cfg:"1s²",y:"1868",st:"g",en:0},
+{z:3,s:"Li",n:"Litio",m:"6.941",c:"alkali",p:2,g:1,b:"s",cfg:"[He] 2s¹",y:"1817",st:"s",en:0.98},
+{z:4,s:"Be",n:"Berilio",m:"9.012",c:"alkaline",p:2,g:2,b:"s",cfg:"[He] 2s²",y:"1798",st:"s",en:1.57},
+{z:5,s:"B",n:"Boro",m:"10.81",c:"metalloid",p:2,g:13,b:"p",cfg:"[He] 2s² 2p¹",y:"1808",st:"s",en:2.04},
+{z:6,s:"C",n:"Carbono",m:"12.01",c:"nonmetal",p:2,g:14,b:"p",cfg:"[He] 2s² 2p²",y:"antigüedad",st:"s",en:2.55},
+{z:7,s:"N",n:"Nitrógeno",m:"14.01",c:"nonmetal",p:2,g:15,b:"p",cfg:"[He] 2s² 2p³",y:"1772",st:"g",en:3.04},
+{z:8,s:"O",n:"Oxígeno",m:"16.00",c:"nonmetal",p:2,g:16,b:"p",cfg:"[He] 2s² 2p⁴",y:"1774",st:"g",en:3.44},
+{z:9,s:"F",n:"Flúor",m:"19.00",c:"halogen",p:2,g:17,b:"p",cfg:"[He] 2s² 2p⁵",y:"1886",st:"g",en:3.98},
+{z:10,s:"Ne",n:"Neón",m:"20.18",c:"noble",p:2,g:18,b:"p",cfg:"[He] 2s² 2p⁶",y:"1898",st:"g",en:0},
+{z:11,s:"Na",n:"Sodio",m:"22.99",c:"alkali",p:3,g:1,b:"s",cfg:"[Ne] 3s¹",y:"1807",st:"s",en:0.93},
+{z:12,s:"Mg",n:"Magnesio",m:"24.31",c:"alkaline",p:3,g:2,b:"s",cfg:"[Ne] 3s²",y:"1755",st:"s",en:1.31},
+{z:13,s:"Al",n:"Aluminio",m:"26.98",c:"post-transition",p:3,g:13,b:"p",cfg:"[Ne] 3s² 3p¹",y:"1825",st:"s",en:1.61},
+{z:14,s:"Si",n:"Silicio",m:"28.09",c:"metalloid",p:3,g:14,b:"p",cfg:"[Ne] 3s² 3p²",y:"1824",st:"s",en:1.90},
+{z:15,s:"P",n:"Fósforo",m:"30.97",c:"nonmetal",p:3,g:15,b:"p",cfg:"[Ne] 3s² 3p³",y:"1669",st:"s",en:2.19},
+{z:16,s:"S",n:"Azufre",m:"32.07",c:"nonmetal",p:3,g:16,b:"p",cfg:"[Ne] 3s² 3p⁴",y:"antigüedad",st:"s",en:2.58},
+{z:17,s:"Cl",n:"Cloro",m:"35.45",c:"halogen",p:3,g:17,b:"p",cfg:"[Ne] 3s² 3p⁵",y:"1774",st:"g",en:3.16},
+{z:18,s:"Ar",n:"Argón",m:"39.95",c:"noble",p:3,g:18,b:"p",cfg:"[Ne] 3s² 3p⁶",y:"1894",st:"g",en:0},
+{z:19,s:"K",n:"Potasio",m:"39.10",c:"alkali",p:4,g:1,b:"s",cfg:"[Ar] 4s¹",y:"1807",st:"s",en:0.82},
+{z:20,s:"Ca",n:"Calcio",m:"40.08",c:"alkaline",p:4,g:2,b:"s",cfg:"[Ar] 4s²",y:"1808",st:"s",en:1.00},
+{z:21,s:"Sc",n:"Escandio",m:"44.96",c:"transition",p:4,g:3,b:"d",cfg:"[Ar] 3d¹ 4s²",y:"1879",st:"s",en:1.36},
+{z:22,s:"Ti",n:"Titanio",m:"47.87",c:"transition",p:4,g:4,b:"d",cfg:"[Ar] 3d² 4s²",y:"1791",st:"s",en:1.54},
+{z:23,s:"V",n:"Vanadio",m:"50.94",c:"transition",p:4,g:5,b:"d",cfg:"[Ar] 3d³ 4s²",y:"1801",st:"s",en:1.63},
+{z:24,s:"Cr",n:"Cromo",m:"52.00",c:"transition",p:4,g:6,b:"d",cfg:"[Ar] 3d⁵ 4s¹",y:"1797",st:"s",en:1.66},
+{z:25,s:"Mn",n:"Manganeso",m:"54.94",c:"transition",p:4,g:7,b:"d",cfg:"[Ar] 3d⁵ 4s²",y:"1774",st:"s",en:1.55},
+{z:26,s:"Fe",n:"Hierro",m:"55.85",c:"transition",p:4,g:8,b:"d",cfg:"[Ar] 3d⁶ 4s²",y:"antigüedad",st:"s",en:1.83},
+{z:27,s:"Co",n:"Cobalto",m:"58.93",c:"transition",p:4,g:9,b:"d",cfg:"[Ar] 3d⁷ 4s²",y:"1735",st:"s",en:1.88},
+{z:28,s:"Ni",n:"Níquel",m:"58.69",c:"transition",p:4,g:10,b:"d",cfg:"[Ar] 3d⁸ 4s²",y:"1751",st:"s",en:1.91},
+{z:29,s:"Cu",n:"Cobre",m:"63.55",c:"transition",p:4,g:11,b:"d",cfg:"[Ar] 3d¹⁰ 4s¹",y:"antigüedad",st:"s",en:1.90},
+{z:30,s:"Zn",n:"Zinc",m:"65.38",c:"transition",p:4,g:12,b:"d",cfg:"[Ar] 3d¹⁰ 4s²",y:"1746",st:"s",en:1.65},
+{z:31,s:"Ga",n:"Galio",m:"69.72",c:"post-transition",p:4,g:13,b:"p",cfg:"[Ar] 3d¹⁰ 4s² 4p¹",y:"1875",st:"s",en:1.81},
+{z:32,s:"Ge",n:"Germanio",m:"72.63",c:"metalloid",p:4,g:14,b:"p",cfg:"[Ar] 3d¹⁰ 4s² 4p²",y:"1886",st:"s",en:2.01},
+{z:33,s:"As",n:"Arsénico",m:"74.92",c:"metalloid",p:4,g:15,b:"p",cfg:"[Ar] 3d¹⁰ 4s² 4p³",y:"~1250",st:"s",en:2.18},
+{z:34,s:"Se",n:"Selenio",m:"78.97",c:"nonmetal",p:4,g:16,b:"p",cfg:"[Ar] 3d¹⁰ 4s² 4p⁴",y:"1817",st:"s",en:2.55},
+{z:35,s:"Br",n:"Bromo",m:"79.90",c:"halogen",p:4,g:17,b:"p",cfg:"[Ar] 3d¹⁰ 4s² 4p⁵",y:"1826",st:"l",en:2.96},
+{z:36,s:"Kr",n:"Kriptón",m:"83.80",c:"noble",p:4,g:18,b:"p",cfg:"[Ar] 3d¹⁰ 4s² 4p⁶",y:"1898",st:"g",en:3.00},
+{z:37,s:"Rb",n:"Rubidio",m:"85.47",c:"alkali",p:5,g:1,b:"s",cfg:"[Kr] 5s¹",y:"1861",st:"s",en:0.82},
+{z:38,s:"Sr",n:"Estroncio",m:"87.62",c:"alkaline",p:5,g:2,b:"s",cfg:"[Kr] 5s²",y:"1790",st:"s",en:0.95},
+{z:39,s:"Y",n:"Itrio",m:"88.91",c:"transition",p:5,g:3,b:"d",cfg:"[Kr] 4d¹ 5s²",y:"1794",st:"s",en:1.22},
+{z:40,s:"Zr",n:"Circonio",m:"91.22",c:"transition",p:5,g:4,b:"d",cfg:"[Kr] 4d² 5s²",y:"1789",st:"s",en:1.33},
+{z:41,s:"Nb",n:"Niobio",m:"92.91",c:"transition",p:5,g:5,b:"d",cfg:"[Kr] 4d⁴ 5s¹",y:"1801",st:"s",en:1.6},
+{z:42,s:"Mo",n:"Molibdeno",m:"95.95",c:"transition",p:5,g:6,b:"d",cfg:"[Kr] 4d⁵ 5s¹",y:"1781",st:"s",en:2.16},
+{z:43,s:"Tc",n:"Tecnecio",m:"(98)",c:"transition",p:5,g:7,b:"d",cfg:"[Kr] 4d⁵ 5s²",y:"1937",st:"s",en:1.9},
+{z:44,s:"Ru",n:"Rutenio",m:"101.1",c:"transition",p:5,g:8,b:"d",cfg:"[Kr] 4d⁷ 5s¹",y:"1844",st:"s",en:2.2},
+{z:45,s:"Rh",n:"Rodio",m:"102.9",c:"transition",p:5,g:9,b:"d",cfg:"[Kr] 4d⁸ 5s¹",y:"1803",st:"s",en:2.28},
+{z:46,s:"Pd",n:"Paladio",m:"106.4",c:"transition",p:5,g:10,b:"d",cfg:"[Kr] 4d¹⁰",y:"1803",st:"s",en:2.20},
+{z:47,s:"Ag",n:"Plata",m:"107.9",c:"transition",p:5,g:11,b:"d",cfg:"[Kr] 4d¹⁰ 5s¹",y:"antigüedad",st:"s",en:1.93},
+{z:48,s:"Cd",n:"Cadmio",m:"112.4",c:"transition",p:5,g:12,b:"d",cfg:"[Kr] 4d¹⁰ 5s²",y:"1817",st:"s",en:1.69},
+{z:49,s:"In",n:"Indio",m:"114.8",c:"post-transition",p:5,g:13,b:"p",cfg:"[Kr] 4d¹⁰ 5s² 5p¹",y:"1863",st:"s",en:1.78},
+{z:50,s:"Sn",n:"Estaño",m:"118.7",c:"post-transition",p:5,g:14,b:"p",cfg:"[Kr] 4d¹⁰ 5s² 5p²",y:"antigüedad",st:"s",en:1.96},
+{z:51,s:"Sb",n:"Antimonio",m:"121.8",c:"metalloid",p:5,g:15,b:"p",cfg:"[Kr] 4d¹⁰ 5s² 5p³",y:"antigüedad",st:"s",en:2.05},
+{z:52,s:"Te",n:"Telurio",m:"127.6",c:"metalloid",p:5,g:16,b:"p",cfg:"[Kr] 4d¹⁰ 5s² 5p⁴",y:"1783",st:"s",en:2.1},
+{z:53,s:"I",n:"Yodo",m:"126.9",c:"halogen",p:5,g:17,b:"p",cfg:"[Kr] 4d¹⁰ 5s² 5p⁵",y:"1811",st:"s",en:2.66},
+{z:54,s:"Xe",n:"Xenón",m:"131.3",c:"noble",p:5,g:18,b:"p",cfg:"[Kr] 4d¹⁰ 5s² 5p⁶",y:"1898",st:"g",en:2.60},
+{z:55,s:"Cs",n:"Cesio",m:"132.9",c:"alkali",p:6,g:1,b:"s",cfg:"[Xe] 6s¹",y:"1860",st:"s",en:0.79},
+{z:56,s:"Ba",n:"Bario",m:"137.3",c:"alkaline",p:6,g:2,b:"s",cfg:"[Xe] 6s²",y:"1808",st:"s",en:0.89},
+{z:57,s:"La",n:"Lantano",m:"138.9",c:"lanthanide",p:6,g:3,b:"f",cfg:"[Xe] 5d¹ 6s²",y:"1839",st:"s",en:1.10},
+{z:58,s:"Ce",n:"Cerio",m:"140.1",c:"lanthanide",p:6,g:0,b:"f",cfg:"[Xe] 4f¹ 5d¹ 6s²",y:"1803",st:"s",en:1.12},{z:59,s:"Pr",n:"Praseodimio",m:"140.9",c:"lanthanide",p:6,g:0,b:"f",cfg:"[Xe] 4f³ 6s²",y:"1885",st:"s",en:1.13},{z:60,s:"Nd",n:"Neodimio",m:"144.2",c:"lanthanide",p:6,g:0,b:"f",cfg:"[Xe] 4f⁴ 6s²",y:"1885",st:"s",en:1.14},{z:61,s:"Pm",n:"Prometio",m:"(145)",c:"lanthanide",p:6,g:0,b:"f",cfg:"[Xe] 4f⁵ 6s²",y:"1945",st:"s",en:1.13},{z:62,s:"Sm",n:"Samario",m:"150.4",c:"lanthanide",p:6,g:0,b:"f",cfg:"[Xe] 4f⁶ 6s²",y:"1879",st:"s",en:1.17},{z:63,s:"Eu",n:"Europio",m:"152.0",c:"lanthanide",p:6,g:0,b:"f",cfg:"[Xe] 4f⁷ 6s²",y:"1901",st:"s",en:1.2},{z:64,s:"Gd",n:"Gadolinio",m:"157.3",c:"lanthanide",p:6,g:0,b:"f",cfg:"[Xe] 4f⁷ 5d¹ 6s²",y:"1880",st:"s",en:1.20},{z:65,s:"Tb",n:"Terbio",m:"158.9",c:"lanthanide",p:6,g:0,b:"f",cfg:"[Xe] 4f⁹ 6s²",y:"1843",st:"s",en:1.2},{z:66,s:"Dy",n:"Disprosio",m:"162.5",c:"lanthanide",p:6,g:0,b:"f",cfg:"[Xe] 4f¹⁰ 6s²",y:"1886",st:"s",en:1.22},{z:67,s:"Ho",n:"Holmio",m:"164.9",c:"lanthanide",p:6,g:0,b:"f",cfg:"[Xe] 4f¹¹ 6s²",y:"1878",st:"s",en:1.23},{z:68,s:"Er",n:"Erbio",m:"167.3",c:"lanthanide",p:6,g:0,b:"f",cfg:"[Xe] 4f¹² 6s²",y:"1843",st:"s",en:1.24},{z:69,s:"Tm",n:"Tulio",m:"168.9",c:"lanthanide",p:6,g:0,b:"f",cfg:"[Xe] 4f¹³ 6s²",y:"1879",st:"s",en:1.25},{z:70,s:"Yb",n:"Iterbio",m:"173.0",c:"lanthanide",p:6,g:0,b:"f",cfg:"[Xe] 4f¹⁴ 6s²",y:"1878",st:"s",en:1.1},{z:71,s:"Lu",n:"Lutecio",m:"175.0",c:"lanthanide",p:6,g:0,b:"f",cfg:"[Xe] 4f¹⁴ 5d¹ 6s²",y:"1907",st:"s",en:1.27},
+{z:72,s:"Hf",n:"Hafnio",m:"178.5",c:"transition",p:6,g:4,b:"d",cfg:"[Xe] 4f¹⁴ 5d² 6s²",y:"1923",st:"s",en:1.3},{z:73,s:"Ta",n:"Tantalio",m:"180.9",c:"transition",p:6,g:5,b:"d",cfg:"[Xe] 4f¹⁴ 5d³ 6s²",y:"1802",st:"s",en:1.5},{z:74,s:"W",n:"Wolframio",m:"183.8",c:"transition",p:6,g:6,b:"d",cfg:"[Xe] 4f¹⁴ 5d⁴ 6s²",y:"1783",st:"s",en:2.36},{z:75,s:"Re",n:"Renio",m:"186.2",c:"transition",p:6,g:7,b:"d",cfg:"[Xe] 4f¹⁴ 5d⁵ 6s²",y:"1925",st:"s",en:1.9},{z:76,s:"Os",n:"Osmio",m:"190.2",c:"transition",p:6,g:8,b:"d",cfg:"[Xe] 4f¹⁴ 5d⁶ 6s²",y:"1803",st:"s",en:2.2},{z:77,s:"Ir",n:"Iridio",m:"192.2",c:"transition",p:6,g:9,b:"d",cfg:"[Xe] 4f¹⁴ 5d⁷ 6s²",y:"1803",st:"s",en:2.20},{z:78,s:"Pt",n:"Platino",m:"195.1",c:"transition",p:6,g:10,b:"d",cfg:"[Xe] 4f¹⁴ 5d⁹ 6s¹",y:"1735",st:"s",en:2.28},{z:79,s:"Au",n:"Oro",m:"197.0",c:"transition",p:6,g:11,b:"d",cfg:"[Xe] 4f¹⁴ 5d¹⁰ 6s¹",y:"antigüedad",st:"s",en:2.54},{z:80,s:"Hg",n:"Mercurio",m:"200.6",c:"transition",p:6,g:12,b:"d",cfg:"[Xe] 4f¹⁴ 5d¹⁰ 6s²",y:"antigüedad",st:"l",en:2.00},
+{z:81,s:"Tl",n:"Talio",m:"204.4",c:"post-transition",p:6,g:13,b:"p",cfg:"[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p¹",y:"1861",st:"s",en:1.62},{z:82,s:"Pb",n:"Plomo",m:"207.2",c:"post-transition",p:6,g:14,b:"p",cfg:"[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p²",y:"antigüedad",st:"s",en:1.87},{z:83,s:"Bi",n:"Bismuto",m:"209.0",c:"post-transition",p:6,g:15,b:"p",cfg:"[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p³",y:"1753",st:"s",en:2.02},{z:84,s:"Po",n:"Polonio",m:"(209)",c:"post-transition",p:6,g:16,b:"p",cfg:"[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p⁴",y:"1898",st:"s",en:2.0},{z:85,s:"At",n:"Astato",m:"(210)",c:"halogen",p:6,g:17,b:"p",cfg:"[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p⁵",y:"1940",st:"s",en:2.2},{z:86,s:"Rn",n:"Radón",m:"(222)",c:"noble",p:6,g:18,b:"p",cfg:"[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p⁶",y:"1900",st:"g",en:2.2},
+{z:87,s:"Fr",n:"Francio",m:"(223)",c:"alkali",p:7,g:1,b:"s",cfg:"[Rn] 7s¹",y:"1939",st:"s",en:0.7},{z:88,s:"Ra",n:"Radio",m:"(226)",c:"alkaline",p:7,g:2,b:"s",cfg:"[Rn] 7s²",y:"1898",st:"s",en:0.9},
+{z:89,s:"Ac",n:"Actinio",m:"(227)",c:"actinide",p:7,g:3,b:"f",cfg:"[Rn] 6d¹ 7s²",y:"1899",st:"s",en:1.1},{z:90,s:"Th",n:"Torio",m:"232.0",c:"actinide",p:7,g:0,b:"f",cfg:"[Rn] 6d² 7s²",y:"1829",st:"s",en:1.3},{z:91,s:"Pa",n:"Protactinio",m:"231.0",c:"actinide",p:7,g:0,b:"f",cfg:"[Rn] 5f² 6d¹ 7s²",y:"1913",st:"s",en:1.5},{z:92,s:"U",n:"Uranio",m:"238.0",c:"actinide",p:7,g:0,b:"f",cfg:"[Rn] 5f³ 6d¹ 7s²",y:"1789",st:"s",en:1.38},{z:93,s:"Np",n:"Neptunio",m:"(237)",c:"actinide",p:7,g:0,b:"f",cfg:"[Rn] 5f⁴ 6d¹ 7s²",y:"1940",st:"s",en:1.36},{z:94,s:"Pu",n:"Plutonio",m:"(244)",c:"actinide",p:7,g:0,b:"f",cfg:"[Rn] 5f⁶ 7s²",y:"1940",st:"s",en:1.28},{z:95,s:"Am",n:"Americio",m:"(243)",c:"actinide",p:7,g:0,b:"f",cfg:"[Rn] 5f⁷ 7s²",y:"1944",st:"s",en:1.3},{z:96,s:"Cm",n:"Curio",m:"(247)",c:"actinide",p:7,g:0,b:"f",cfg:"[Rn] 5f⁷ 6d¹ 7s²",y:"1944",st:"s",en:1.3},{z:97,s:"Bk",n:"Berkelio",m:"(247)",c:"actinide",p:7,g:0,b:"f",cfg:"[Rn] 5f⁹ 7s²",y:"1949",st:"s",en:1.3},{z:98,s:"Cf",n:"Californio",m:"(251)",c:"actinide",p:7,g:0,b:"f",cfg:"[Rn] 5f¹⁰ 7s²",y:"1950",st:"s",en:1.3},{z:99,s:"Es",n:"Einstenio",m:"(252)",c:"actinide",p:7,g:0,b:"f",cfg:"[Rn] 5f¹¹ 7s²",y:"1952",st:"s",en:1.3},{z:100,s:"Fm",n:"Fermio",m:"(257)",c:"actinide",p:7,g:0,b:"f",cfg:"[Rn] 5f¹² 7s²",y:"1952",st:"s",en:1.3},{z:101,s:"Md",n:"Mendelevio",m:"(258)",c:"actinide",p:7,g:0,b:"f",cfg:"[Rn] 5f¹³ 7s²",y:"1955",st:"s",en:1.3},{z:102,s:"No",n:"Nobelio",m:"(259)",c:"actinide",p:7,g:0,b:"f",cfg:"[Rn] 5f¹⁴ 7s²",y:"1966",st:"s",en:1.3},{z:103,s:"Lr",n:"Lawrencio",m:"(266)",c:"actinide",p:7,g:0,b:"f",cfg:"[Rn] 5f¹⁴ 7s² 7p¹",y:"1961",st:"s",en:1.3},
+{z:104,s:"Rf",n:"Rutherfordio",m:"(267)",c:"transition",p:7,g:4,b:"d",cfg:"[Rn] 5f¹⁴ 6d² 7s²",y:"1969",st:"u",en:0},{z:105,s:"Db",n:"Dubnio",m:"(268)",c:"transition",p:7,g:5,b:"d",cfg:"[Rn] 5f¹⁴ 6d³ 7s²",y:"1970",st:"u",en:0},{z:106,s:"Sg",n:"Seaborgio",m:"(269)",c:"transition",p:7,g:6,b:"d",cfg:"[Rn] 5f¹⁴ 6d⁴ 7s²",y:"1974",st:"u",en:0},{z:107,s:"Bh",n:"Bohrio",m:"(270)",c:"transition",p:7,g:7,b:"d",cfg:"[Rn] 5f¹⁴ 6d⁵ 7s²",y:"1981",st:"u",en:0},{z:108,s:"Hs",n:"Hasio",m:"(277)",c:"transition",p:7,g:8,b:"d",cfg:"[Rn] 5f¹⁴ 6d⁶ 7s²",y:"1984",st:"u",en:0},{z:109,s:"Mt",n:"Meitnerio",m:"(278)",c:"unknown",p:7,g:9,b:"d",cfg:"[Rn] 5f¹⁴ 6d⁷ 7s²",y:"1982",st:"u",en:0},{z:110,s:"Ds",n:"Darmstatio",m:"(281)",c:"unknown",p:7,g:10,b:"d",cfg:"[Rn] 5f¹⁴ 6d⁸ 7s²",y:"1994",st:"u",en:0},{z:111,s:"Rg",n:"Roentgenio",m:"(282)",c:"unknown",p:7,g:11,b:"d",cfg:"[Rn] 5f¹⁴ 6d⁹ 7s²",y:"1994",st:"u",en:0},{z:112,s:"Cn",n:"Copernicio",m:"(285)",c:"unknown",p:7,g:12,b:"d",cfg:"[Rn] 5f¹⁴ 6d¹⁰ 7s²",y:"1996",st:"u",en:0},{z:113,s:"Nh",n:"Nihonio",m:"(286)",c:"unknown",p:7,g:13,b:"p",cfg:"[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p¹",y:"2003",st:"u",en:0},{z:114,s:"Fl",n:"Flerovio",m:"(289)",c:"unknown",p:7,g:14,b:"p",cfg:"[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p²",y:"1999",st:"u",en:0},{z:115,s:"Mc",n:"Moscovio",m:"(290)",c:"unknown",p:7,g:15,b:"p",cfg:"[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p³",y:"2003",st:"u",en:0},{z:116,s:"Lv",n:"Livermorio",m:"(293)",c:"unknown",p:7,g:16,b:"p",cfg:"[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p⁴",y:"2000",st:"u",en:0},{z:117,s:"Ts",n:"Teneso",m:"(294)",c:"unknown",p:7,g:17,b:"p",cfg:"[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p⁵",y:"2009",st:"u",en:0},{z:118,s:"Og",n:"Oganesón",m:"(294)",c:"noble",p:7,g:18,b:"p",cfg:"[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p⁶",y:"2002",st:"u",en:0}
+];
+const CN={alkali:"Metal alcalino",alkaline:"Alcalinotérreo",transition:"Metal de transición","post-transition":"Metal post-transición",metalloid:"Metaloide",nonmetal:"No metal",halogen:"Halógeno",noble:"Gas noble",lanthanide:"Lantánido",actinide:"Actínido",unknown:"Desconocido"};
+const SN={s:"Sólido",l:"Líquido",g:"Gas",u:"Desconocido"};
+function buildTable(){const t=document.getElementById('ptable');const grid={};E.forEach(el=>{if(el.c==='lanthanide'&&el.g===0){grid['9-'+(el.z-58+4)]=el}else if(el.c==='actinide'&&el.g===0){grid['10-'+(el.z-90+4)]=el}else if(el.z===57){grid['6-3']=el}else if(el.z===89){grid['7-3']=el}else{grid[el.p+'-'+el.g]=el}});let h='',ai=0;h+='<div class="gh" style="grid-row:1;grid-column:1"></div>';for(let g=1;g<=18;g++)h+='<div class="gh" style="grid-row:1;grid-column:'+(g+1)+'">'+g+'</div>';for(let r=1;r<=7;r++){h+='<div class="pl" style="grid-row:'+(r+1)+';grid-column:1">'+r+'</div>';for(let c=1;c<=18;c++){const el=grid[r+'-'+c];if(el){const sc=el.st==='s'?'solid':el.st==='l'?'liquid':el.st==='g'?'gas':'unknown';h+='<div class="el cat-'+el.c+' state-'+sc+'" data-p="'+el.p+'" data-z="'+el.z+'" data-c="'+el.c+'" data-g="'+el.g+'" style="--i:'+ai+++';grid-row:'+(r+1)+';grid-column:'+(c+1)+'" onclick="showD('+el.z+')" onmouseenter="showTT(event,'+el.z+')" onmouseleave="hideTT()"><span class="sd"></span><span class="z">'+el.z+'</span><span class="sym">'+el.s+'</span><span class="nm">'+el.n+'</span><span class="ms">'+el.m+'</span></div>'}}}h+='<div style="grid-row:9;grid-column:1/-1;height:12px"></div>';h+='<div class="la-label" style="grid-row:10">Lan →</div>';for(let c=4;c<=17;c++){const el=grid['9-'+c];if(el){h+='<div class="el cat-'+el.c+' state-solid" data-p="6" data-z="'+el.z+'" data-c="'+el.c+'" data-g="0" style="--i:'+ai+++';grid-row:10;grid-column:'+(c+1)+'" onclick="showD('+el.z+')" onmouseenter="showTT(event,'+el.z+')" onmouseleave="hideTT()"><span class="sd"></span><span class="z">'+el.z+'</span><span class="sym">'+el.s+'</span><span class="nm">'+el.n+'</span><span class="ms">'+el.m+'</span></div>'}}h+='<div class="la-label" style="grid-row:11">Act →</div>';for(let c=4;c<=17;c++){const el=grid['10-'+c];if(el){const sc=el.st==='u'?'unknown':'solid';h+='<div class="el cat-'+el.c+' state-'+sc+'" data-p="7" data-z="'+el.z+'" data-c="'+el.c+'" data-g="0" style="--i:'+ai+++';grid-row:11;grid-column:'+(c+1)+'" onclick="showD('+el.z+')" onmouseenter="showTT(event,'+el.z+')" onmouseleave="hideTT()"><span class="sd"></span><span class="z">'+el.z+'</span><span class="sym">'+el.s+'</span><span class="nm">'+el.n+'</span><span class="ms">'+el.m+'</span></div>'}}t.innerHTML=h}
+function showTT(ev,z){const el=E.find(e=>e.z===z);if(!el)return;const tt=document.getElementById('tooltip');tt.innerHTML='<div class="tt-sym" style="color:var(--'+el.c+')">'+el.s+'</div><div class="tt-name">'+el.n+'</div><div class="tt-meta"><b>Z:</b> '+el.z+' · <b>Masa:</b> '+el.m+'<br><b>Familia:</b> '+CN[el.c]+'<br><b>Estado:</b> '+SN[el.st]+' · <b>Bloque:</b> '+el.b+(el.en?'<br><b>Electroneg.:</b> '+el.en:'')+'</div>';tt.classList.add('visible');const r=ev.target.closest('.el').getBoundingClientRect();let x=r.right+10,y=r.top;if(x+230>window.innerWidth)x=r.left-230;if(y+150>window.innerHeight)y=window.innerHeight-160;if(y<0)y=10;tt.style.left=x+'px';tt.style.top=y+'px'}
+function hideTT(){document.getElementById('tooltip').classList.remove('visible')}
+function showD(z){const el=E.find(e=>e.z===z);if(!el)return;document.getElementById('dContent').innerHTML='<div class="dp-sym" style="color:var(--'+el.c+')">'+el.s+'</div><div class="dp-name">'+el.n+'</div><div class="dp-sub">Z = '+el.z+' · '+CN[el.c]+' · '+SN[el.st]+'</div><div class="dp-grid"><div class="dp-item"><div class="dl">Masa atómica</div><div class="dv">'+el.m+'</div></div><div class="dp-item"><div class="dl">Periodo</div><div class="dv">'+el.p+'</div></div><div class="dp-item"><div class="dl">Grupo</div><div class="dv">'+(el.g||'f-block')+'</div></div><div class="dp-item"><div class="dl">Bloque</div><div class="dv">'+el.b+'</div></div><div class="dp-item dp-full"><div class="dl">Config. electrónica</div><div class="dv" style="font-size:0.8rem">'+el.cfg+'</div></div><div class="dp-item"><div class="dl">Electronegatividad</div><div class="dv">'+(el.en||'—')+'</div></div><div class="dp-item"><div class="dl">Descubierto</div><div class="dv">'+el.y+'</div></div></div>';document.getElementById('dPopup').classList.add('show');document.getElementById('dOverlay').classList.add('show');hideTT()}
+function closeDetail(){document.getElementById('dPopup').classList.remove('show');document.getElementById('dOverlay').classList.remove('show')}
+const CD={alkali:{i:'⚡',t:'Metales alcalinos (Grupo 1)',d:'Muy reactivos, blandos, brillo plateado. Reaccionan violentamente con el agua. Un electrón de valencia.'},alkaline:{i:'🔶',t:'Alcalinotérreos (Grupo 2)',d:'Reactivos pero menos que los alcalinos. Metales ligeros, 2 electrones de valencia.'},transition:{i:'🔧',t:'Metales de transición (Grupos 3-12)',d:'Duros, densos, buenos conductores. Varios estados de oxidación, compuestos coloridos.'},'post-transition':{i:'🧊',t:'Metales post-transición',d:'Más blandos, puntos de fusión más bajos. Incluyen aluminio, estaño y plomo.'},metalloid:{i:'🔌',t:'Metaloides (Semimetales)',d:'Propiedades intermedias. Semiconductores esenciales para la electrónica.'},nonmetal:{i:'💨',t:'No metales',d:'Malos conductores, esenciales para la vida. C, N, O y P forman moléculas biológicas.'},halogen:{i:'🧪',t:'Halógenos (Grupo 17)',d:'Muy reactivos, forman sales con metales. El flúor es el más electronegativo.'},noble:{i:'✨',t:'Gases nobles (Grupo 18)',d:'Capa electrónica completa, muy estables. Incoloros e inodoros.'},lanthanide:{i:'🌸',t:'Lantánidos (4f)',d:'Ce a Lu. Imanes potentes, pantallas LCD, láseres, catalizadores.'},actinide:{i:'☢️',t:'Actínidos (5f)',d:'Th a Lr. Mayoría radiactivos. Uranio y plutonio: combustible nuclear.'},unknown:{i:'❓',t:'Propiedades no confirmadas',d:'Elementos superpesados sintéticos, extremadamente inestables.'}};
+const GD={1:{t:'Grupo 1 — Alcalinos',d:'Li, Na, K, Rb, Cs, Fr (+H). Un electrón de valencia.',i:'⚡'},2:{t:'Grupo 2 — Alcalinotérreos',d:'Be, Mg, Ca, Sr, Ba, Ra. Dos electrones de valencia.',i:'🔶'},3:{t:'Grupo 3',d:'Sc, Y, La/Ac. Inicio de los metales de transición.',i:'🔧'},4:{t:'Grupo 4',d:'Ti, Zr, Hf, Rf. Resistentes a la corrosión. Titanio en aviación.',i:'✈️'},5:{t:'Grupo 5',d:'V, Nb, Ta, Db. Altos puntos de fusión. Aleaciones especiales.',i:'🔥'},6:{t:'Grupo 6',d:'Cr, Mo, W, Sg. Wolframio: punto de fusión más alto (3422°C).',i:'🌡️'},7:{t:'Grupo 7',d:'Mn, Tc, Re, Bh. Manganeso esencial para el acero.',i:'⚙️'},8:{t:'Grupo 8',d:'Fe, Ru, Os, Hs. Hierro: metal más usado. Osmio: el más denso.',i:'🏗️'},9:{t:'Grupo 9',d:'Co, Rh, Ir, Mt. Cobalto da color azul. Iridio resiste la corrosión.',i:'💎'},10:{t:'Grupo 10',d:'Ni, Pd, Pt, Ds. Platino: joyería y catalizadores.',i:'💍'},11:{t:'Grupo 11 — Acuñación',d:'Cu, Ag, Au, Rg. Excelentes conductores, joyería, electrónica.',i:'🪙'},12:{t:'Grupo 12',d:'Zn, Cd, Hg, Cn. Mercurio: único metal líquido a temp. ambiente.',i:'💧'},13:{t:'Grupo 13 — Grupo del boro',d:'B, Al, Ga, In, Tl, Nh. Aluminio: metal más abundante en corteza.',i:'🏔️'},14:{t:'Grupo 14 — Grupo del carbono',d:'C, Si, Ge, Sn, Pb, Fl. Base de la vida (C) y tecnología (Si).',i:'💻'},15:{t:'Grupo 15 — Pnictógenos',d:'N, P, As, Sb, Bi, Mc. Nitrógeno: 78% de la atmósfera.',i:'🧬'},16:{t:'Grupo 16 — Calcógenos',d:'O, S, Se, Te, Po, Lv. Oxígeno: esencial para la respiración.',i:'🌬️'},17:{t:'Grupo 17 — Halógenos',d:'F, Cl, Br, I, At, Ts. Forman sales. Flúor: el más electronegativo.',i:'🧂'},18:{t:'Grupo 18 — Gases nobles',d:'He, Ne, Ar, Kr, Xe, Rn, Og. Capa completa, inertes.',i:'🎈'}};
+const PD={1:{t:'Periodo 1',d:'2 elementos: H y He. Orbital 1s.',i:'①'},2:{t:'Periodo 2',d:'8 elementos: Li → Ne. Orbitales 2s y 2p.',i:'②'},3:{t:'Periodo 3',d:'8 elementos: Na → Ar. Orbitales 3s y 3p.',i:'③'},4:{t:'Periodo 4',d:'18 elementos: K → Kr. Primeros metales de transición (3d).',i:'④'},5:{t:'Periodo 5',d:'18 elementos: Rb → Xe. Orbitales 4d y 5p.',i:'⑤'},6:{t:'Periodo 6',d:'32 elementos: Cs → Rn. Incluye lantánidos (4f).',i:'⑥'},7:{t:'Periodo 7',d:'32 elementos: Fr → Og. Actínidos (5f) y superpesados.',i:'⑦'}};
+function rB(s){document.querySelectorAll(s).forEach(b=>b.classList.remove('active'))}function sF(s){document.querySelector(s).classList.add('active')}
+function rSB(){document.querySelectorAll('.cat-label').forEach(l=>l.classList.remove('active'))}
+function rSBcats(){document.querySelectorAll('.cat-label[data-scat]').forEach(l=>l.classList.remove('active'))}
+function rSBpers(){document.querySelectorAll('.per-label').forEach(l=>l.classList.remove('active'))}
+function hl(fn){const t=document.getElementById('ptable');t.classList.add('filtering');let m=[];t.querySelectorAll('.el').forEach(el=>{if(fn(el)){el.classList.add('hl');m.push(+el.dataset.z)}else el.classList.remove('hl')});return m}
+function clr(){const t=document.getElementById('ptable');t.classList.remove('filtering');t.querySelectorAll('.el').forEach(el=>el.classList.remove('hl'));document.getElementById('filterInfo').innerHTML='';rSB()}
+function sFI(info,zs){const els=zs.map(z=>E.find(e=>e.z===z)).filter(Boolean);const chips=els.map(e=>'<span class="fi-chip" onclick="showD('+e.z+')" style="color:var(--'+e.c+')">'+e.s+'</span>').join('');document.getElementById('filterInfo').innerHTML='<div class="fi-card"><div class="fi-icon">'+info.i+'</div><div><h4>'+info.t+'</h4><p>'+info.d+'</p><span class="fi-count">'+els.length+' elemento'+(els.length!==1?'s':'')+'</span><div class="fi-chips">'+chips+'</div></div></div>'}
+function syncSidebar(c){rSB();if(c&&c!=='all'){const lb=document.querySelector('.cat-label[data-scat="'+c+'"]');if(lb)lb.classList.add('active')}}
+function fCat(c,btn){rB('.fbtn');rB('.gbtn');sF('#grpFilters .gbtn');sF('#perFilters .gbtn');btn.classList.add('active');document.getElementById('searchInput').value='';document.getElementById('searchCount').textContent='';if(c==='all'){clr();return}rSBpers();syncSidebar(c);const zs=hl(el=>el.dataset.c===c);sFI(CD[c],zs)}
+function fGrp(g,btn){rB('.fbtn');rB('.gbtn');sF('#catFilters .fbtn');sF('#perFilters .gbtn');btn.classList.add('active');document.getElementById('searchInput').value='';document.getElementById('searchCount').textContent='';rSB();if(g===0){clr();return}const zs=hl(el=>+el.dataset.g===g);sFI(GD[g],zs)}
+function fPer(p,btn){rB('.fbtn');rB('.gbtn');sF('#catFilters .fbtn');sF('#grpFilters .gbtn');btn.classList.add('active');document.getElementById('searchInput').value='';document.getElementById('searchCount').textContent='';rSB();if(p===0){clr();return}const pl=document.querySelector('.per-label[data-sper="'+p+'"]');if(pl)pl.classList.add('active');const zs=hl(el=>+el.dataset.p===p);sFI(PD[p],zs)}
+function sidebarFilter(c,label){const wasActive=label.classList.contains('active');rB('.fbtn');rB('.gbtn');sF('#grpFilters .gbtn');sF('#perFilters .gbtn');rSB();document.getElementById('searchInput').value='';document.getElementById('searchCount').textContent='';if(wasActive){sF('#catFilters .fbtn');clr();return}label.classList.add('active');const catBtn=document.querySelector('.fbtn[data-cat="'+c+'"]');if(catBtn){rB('.fbtn');catBtn.classList.add('active')}const zs=hl(el=>el.dataset.c===c);sFI(CD[c],zs)}
+function sidebarPeriod(p,label){const wasActive=label.classList.contains('active');rB('.fbtn');rB('.gbtn');sF('#catFilters .fbtn');sF('#grpFilters .gbtn');rSB();document.getElementById('searchInput').value='';document.getElementById('searchCount').textContent='';if(wasActive){sF('#perFilters .gbtn');clr();return}label.classList.add('active');const perBtns=document.querySelectorAll('#perFilters .gbtn');perBtns.forEach(b=>b.classList.remove('active'));perBtns[p]&&perBtns[p].classList.add('active');const zs=hl(el=>+el.dataset.p===p);sFI(PD[p],zs)}
+function searchElements(q){rB('.fbtn');rB('.gbtn');sF('#catFilters .fbtn');sF('#grpFilters .gbtn');sF('#perFilters .gbtn');rSB();document.getElementById('filterInfo').innerHTML='';const t=document.getElementById('ptable');if(!q.trim()){t.classList.remove('filtering');t.querySelectorAll('.el').forEach(el=>el.classList.remove('hl'));document.getElementById('searchCount').textContent='';return}const ql=q.toLowerCase().trim();t.classList.add('filtering');let count=0;t.querySelectorAll('.el').forEach(el=>{const z=+el.dataset.z;const d=E.find(e=>e.z===z);if(d&&(d.n.toLowerCase().includes(ql)||d.s.toLowerCase().includes(ql)||String(d.z)===ql)){el.classList.add('hl');count++}else el.classList.remove('hl')});document.getElementById('searchCount').textContent=count+' resultado'+(count!==1?'s':'')}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDetail()});
+buildTable();
+</script>
+</body>
+</html>
